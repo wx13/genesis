@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/wx13/genesis/installer"
 	"github.com/wx13/genesis/modules"
 )
@@ -35,6 +37,55 @@ func dotfiles() {
 		Store:    inst.Store,
 	})
 
+	inst.AddTask(modules.CopyFile{
+		DestFile: "~/.screenrc",
+		SrcFile:  "files/screenrc",
+		Store:    inst.Store,
+	})
+
+	sshConfig()
+
+}
+
+func sshConfig() {
+
+	// Ensure SSH directory exists, but don't remove it.
+	if !inst.Remove {
+		inst.AddTask(modules.Mkdir{Path: "~/.ssh"})
+	}
+
+	// Enable SSH persistence.
+	inst.AddTask(modules.BlockInFile{
+		File:     "~/.ssh/config",
+		Patterns: []string{`^Host \*`, "^ControlPersist"},
+		Lines: []string{
+			"Host *",
+			"ControlMaster auto",
+			"ControlPath ~/.ssh/master-%r@%h:%p",
+			"ControlPersist 30m",
+		},
+		Store: inst.Store,
+		Label: "ssh_persistence",
+	})
+
+	// Disable host key checking on select local networks.
+	ips := []string{"10.0.0.*", "10.0.1.*", "192.168.1.*"}
+	for _, ip := range ips {
+		inst.AddTask(modules.BlockInFile{
+			File: "~/.ssh/config",
+			Patterns: []string{
+				fmt.Sprintf("^Host %s", ip),
+				"^UserKnownHostsFile",
+			},
+			Lines: []string{
+				fmt.Sprintf("Host %s", ip),
+				"StrictHostKeyChecking no",
+				"UserKnownHostsFile=/dev/null",
+			},
+			Store: inst.Store,
+			Label: "disable_ssh_host_key_checking" + ip,
+		})
+	}
 }
 
 func main() {

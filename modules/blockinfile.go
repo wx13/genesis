@@ -54,6 +54,7 @@ func (bif BlockInFile) findLine(pattern string, lines []string) int {
 }
 
 func (bif BlockInFile) Remove() (string, error) {
+	bif.File = genesis.ExpandHome(bif.File)
 	err := bif.Store.ApplyPatch(bif.File, bif.Label)
 	if err != nil {
 		return "Could not apply patch.", err
@@ -62,6 +63,8 @@ func (bif BlockInFile) Remove() (string, error) {
 }
 
 func (bif BlockInFile) Status() (genesis.Status, string, error) {
+
+	bif.File = genesis.ExpandHome(bif.File)
 
 	fileLines, err := bif.readFile()
 	if err != nil {
@@ -96,6 +99,8 @@ OUTER:
 }
 
 func (bif BlockInFile) Install() (string, error) {
+
+	bif.File = genesis.ExpandHome(bif.File)
 
 	lines, _ := bif.readFile()
 	origLines := strings.Join(lines, "\n")

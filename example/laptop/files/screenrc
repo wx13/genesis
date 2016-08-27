@@ -1,0 +1,12 @@
+escape ^Gg
+defscrollback 2048
+bind R eval "source $HOME/.screenrc" # "echo '.screenrc reloaded!'"
+term screen-256color
+startup_message off
+vbell off
+
+
+hardstatus off
+hardstatus alwayslastline
+hardstatus string "%{= Kw}[%`] %-w%{+bu c}%n %t%{-}%+w %= %{+ b}%11` %{-}[%H] %D %d %LM %{+b I}%c "
+backtick 0 30 30 sh -c 'screen -ls | grep --color=no -o "$PPID[^[:space:]]*" | sed "s/^[0-9]*\.//"'
