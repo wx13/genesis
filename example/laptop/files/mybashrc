@@ -12,3 +12,6 @@ export GOPATH=$HOME/code/go
 
 export CDPATH=.:$HOME:$HOME/code:$GOPATH/src:$GOPATH/src/github.com/wx13
 
+PATH="$PATH:/usr/local/go/bin"
+
+TZ='America/Los_Angeles'; export TZ
