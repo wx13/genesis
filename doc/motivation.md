@@ -76,7 +76,42 @@ because you can just destroy your cloud VMs and start over.  But you can't
 destroy a physical device and start over!  Along the same lines, many
 CMSs don't have a good way to examine the current state of the system.
 
+Another difference between cloud servers and embedded systems is the
+following.  You are in control of your cloud servers at all times. However,
+with embedded systems you typically ship your hardware to your customers,
+and then you are hands off.  If you wish to update the software on one
+of your remote, non-networked devices, you must work with the customer to
+do so.  Asking them to install ansible on a laptop or set up a chef server
+is definately a no-go.
+
 Finally, all CMSs that I am aware of operate over a network connection.
 This obviously won't work for offline systems.
 
-More to come...
+## Genesis
+
+I have outlined the problems with traditional configuration management
+for embedded systems.  This translates into requirements for a new configuration
+management tool.  Here are the design goals of the Genesis project.
+
+### 1. Minimize assumptions about the target system.
+
+Some assumptions to avoid:
+
+- The target system is network connected.
+- The target system is running linux/windows/bsd/...
+- The target system has python/ruby/... installed on it.
+- The target system is running the bash/csh/zsh/... shell.
+- The target system has the command line utilities grep, awk, sed, etc.
+
+### 2. Show current system state.
+
+The Genesis software should be able to display the current system state
+to the user.
+
+### 3. Be able to roll-back changes.
+
+The Genesis software should be able to undo changes it makes to the system.
+Obviously there are limits to this, and Genesis will never be perfect at this.
+However, it should make reasonable attempts to restore the system to its
+previous state.
+
