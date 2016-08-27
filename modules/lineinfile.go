@@ -46,6 +46,7 @@ func (lif LineInFile) writeFile(lines []string) error {
 }
 
 func (lif LineInFile) Remove() (string, error) {
+	lif.File = genesis.ExpandHome(lif.File)
 	err := lif.Store.ApplyPatch(lif.File, lif.Label)
 	if err != nil {
 		return "Could not apply patch.", err
@@ -54,6 +55,9 @@ func (lif LineInFile) Remove() (string, error) {
 }
 
 func (lif LineInFile) Status() (genesis.Status, string, error) {
+
+	lif.File = genesis.ExpandHome(lif.File)
+
 	lines, err := lif.readFile()
 	if err != nil {
 		return genesis.StatusFail, "Could not read file.", err
@@ -83,6 +87,8 @@ func (lif LineInFile) Status() (genesis.Status, string, error) {
 }
 
 func (lif LineInFile) Install() (string, error) {
+
+	lif.File = genesis.ExpandHome(lif.File)
 
 	lines, _ := lif.readFile()
 	origLines := strings.Join(lines, "\n")
