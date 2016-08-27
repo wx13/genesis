@@ -11,7 +11,10 @@ var inst *installer.Installer
 
 func dotfiles() {
 
-	inst.AddTask(modules.LineInFile{
+	sect := installer.NewSection("Configure dotfiles")
+	defer inst.Add(sect)
+
+	sect.AddTask(modules.LineInFile{
 		File:    "~/.bashrc",
 		Line:    "source $HOME/.mybashrc",
 		Pattern: "source $HOME/.mybashrc",
@@ -19,43 +22,44 @@ func dotfiles() {
 		Label:   "bashrc",
 	})
 
-	inst.AddTask(modules.CopyFile{
+	sect.AddTask(modules.CopyFile{
 		DestFile: "~/.mybashrc",
 		SrcFile:  "files/mybashrc",
 		Store:    inst.Store,
 	})
 
-	inst.AddTask(modules.HttpGet{
+	sect.AddTask(modules.HttpGet{
 		Url:   "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh",
 		Dest:  "~/.git-prompt.sh",
 		Store: inst.Store,
 	})
 
-	inst.AddTask(modules.CopyFile{
+	sect.AddTask(modules.CopyFile{
 		DestFile: "~/.gitconfig",
 		SrcFile:  "files/gitconfig",
 		Store:    inst.Store,
 	})
 
-	inst.AddTask(modules.CopyFile{
+	sect.AddTask(modules.CopyFile{
 		DestFile: "~/.screenrc",
 		SrcFile:  "files/screenrc",
 		Store:    inst.Store,
 	})
 
-	sshConfig()
-
 }
 
 func sshConfig() {
 
+	sect := installer.NewSection("SSH configuration")
+	defer inst.Add(sect)
+
 	// Ensure SSH directory exists, but don't remove it.
 	if !inst.Remove {
-		inst.AddTask(modules.Mkdir{Path: "~/.ssh"})
+		sect.AddTask(modules.Mkdir{Path: "~/.ssh"})
 	}
 
 	// Enable SSH persistence.
-	inst.AddTask(modules.BlockInFile{
+	sect.AddTask(modules.BlockInFile{
 		File:     "~/.ssh/config",
 		Patterns: []string{`^Host \*`, "^ControlPersist"},
 		Lines: []string{
@@ -71,7 +75,7 @@ func sshConfig() {
 	// Disable host key checking on select local networks.
 	ips := []string{"10.0.0.*", "10.0.1.*", "192.168.1.*"}
 	for _, ip := range ips {
-		inst.AddTask(modules.BlockInFile{
+		sect.AddTask(modules.BlockInFile{
 			File: "~/.ssh/config",
 			Patterns: []string{
 				fmt.Sprintf("^Host %s", ip),
@@ -97,5 +101,6 @@ func main() {
 	defer inst.Done()
 
 	dotfiles()
+	sshConfig()
 
 }
