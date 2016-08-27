@@ -24,6 +24,9 @@ func (cpf CopyFile) ID() string {
 }
 
 func (cpf CopyFile) Remove() (string, error) {
+
+	cpf.DestFile = genesis.ExpandHome(cpf.DestFile)
+
 	err := cpf.Store.RestoreFile(cpf.DestFile, "")
 	if err == nil {
 		return "Successfully restored destination file.", nil
@@ -32,6 +35,8 @@ func (cpf CopyFile) Remove() (string, error) {
 }
 
 func (cpf CopyFile) Install() (string, error) {
+
+	cpf.DestFile = genesis.ExpandHome(cpf.DestFile)
 
 	bytes, err := ioutil.ReadFile(cpf.SrcFile)
 	if err != nil {
@@ -53,6 +58,8 @@ func (cpf CopyFile) Install() (string, error) {
 }
 
 func (cpf CopyFile) Status() (genesis.Status, string, error) {
+
+	cpf.DestFile = genesis.ExpandHome(cpf.DestFile)
 
 	src, err := ioutil.ReadFile(cpf.SrcFile)
 	if err != nil {

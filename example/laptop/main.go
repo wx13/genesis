@@ -20,5 +20,10 @@ func main() {
 		Store:   inst.Store,
 		Label:   "bashrc",
 	})
+	inst.AddTask(modules.CopyFile{
+		DestFile: "~/.mybashrc",
+		SrcFile:  "files/mybashrc",
+		Store:    inst.Store,
+	})
 
 }
