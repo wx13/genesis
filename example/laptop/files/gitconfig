@@ -1,0 +1,8 @@
+[user]
+	name = Jason DeVita
+	email = jason@wx13.com
+[color]
+	ui = auto
+[core]
+	editor = sith
+	quotepath = false
