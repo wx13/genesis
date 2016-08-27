@@ -25,5 +25,10 @@ func main() {
 		SrcFile:  "files/mybashrc",
 		Store:    inst.Store,
 	})
+	inst.AddTask(modules.HttpGet{
+		Url:   "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh",
+		Dest:  "~/.git-prompt.sh",
+		Store: inst.Store,
+	})
 
 }
