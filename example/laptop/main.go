@@ -9,6 +9,18 @@ import (
 
 var inst *installer.Installer
 
+func aptGet() {
+
+	sect := installer.NewSection("Apt-Get install some software")
+	defer inst.Add(sect)
+
+	pkgs := []string{"git", "gitk", "tig", "screen", "w3m"}
+	for _, pkg := range pkgs {
+		sect.AddTask(modules.Apt{Name: pkg})
+	}
+
+}
+
 func dotfiles() {
 
 	sect := installer.NewSection("Configure dotfiles")
@@ -102,5 +114,6 @@ func main() {
 
 	dotfiles()
 	sshConfig()
+	aptGet()
 
 }
