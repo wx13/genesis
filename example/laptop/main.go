@@ -1,3 +1,7 @@
+// This is a genesis configuration for my own personal laptop.
+// It can serve as a simple example for setting up a real-world
+// system.
+
 package main
 
 import (

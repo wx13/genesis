@@ -6,19 +6,24 @@ It is intended as a configuration management utility for
 embedded systems.
 
 
+Status
+------
+
+This is experimental software, with high API instability.
+
+
 Motivation
 ----------
 
 Traditional configuration management systems (chef, ansible, etc.)
-don't work well for embedded systems because they tend to:
+don't work well for embedded systems because they tend to assume:
 
-- assume the target is accessible by network,
-- assume the target has be pre-configured:
-  + network interfaces configured and enabled
-  + ssh server installed and configured
-  + supporting software installed (python, chef, etc)
+- the target is accessible by network and the network has been configured
+- the target is running an ssh server
+- supporting software has been installed (python, chef, etc).
 
-Genesis is designed to configure a system *from scratch*.
+Genesis is designed to configure a system *from scratch*.  See the `doc`
+directory for more information.
 
 
 Example
