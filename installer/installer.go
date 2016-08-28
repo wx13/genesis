@@ -11,6 +11,7 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/kardianos/osext"
@@ -174,6 +175,8 @@ func (inst *Installer) GatherFacts() {
 
 	inst.Facts = genesis.Facts{}
 
+	inst.Facts.ArchType = runtime.GOARCH
+	inst.Facts.OS = runtime.GOOS
 	cmd := exec.Command("uname", "-m")
 	output, err := cmd.Output()
 	if err == nil {

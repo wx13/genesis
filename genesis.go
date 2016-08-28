@@ -11,6 +11,8 @@ import (
 // Facts stores discovered information about the target system.
 type Facts struct {
 	Arch     string
+	ArchType string
+	OS       string
 	Hostname string
 	Username string
 }
