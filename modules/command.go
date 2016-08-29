@@ -9,8 +9,9 @@ import (
 )
 
 type Command struct {
-	Cmd  string
-	Opts []string
+	Cmd       string
+	Opts      []string
+	PSPattern string
 }
 
 func (cmd Command) Describe() string {
@@ -22,7 +23,17 @@ func (cmd Command) ID() string {
 }
 
 func (cmd Command) Status() (genesis.Status, string, error) {
-	return genesis.StatusUnknown, "Cannot discern whether a command has been run or not.", nil
+	if len(cmd.PSPattern) == 0 {
+		return genesis.StatusUnknown, "Cannot discern whether a command has been run or not.", nil
+	}
+	out, err := exec.Command("pgrep", cmd.PSPattern).CombinedOutput()
+	if err != nil {
+		return genesis.StatusUnknown, "Cannot discern whether a command has been run or not.", err
+	}
+	if len(out) > 0 {
+		return genesis.StatusPass, cmd.PSPattern + " is running", nil
+	}
+	return genesis.StatusFail, cmd.PSPattern + " is not running", err
 }
 
 func (cmd Command) Remove() (string, error) {
