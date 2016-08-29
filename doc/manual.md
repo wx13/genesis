@@ -72,3 +72,35 @@ methods. Customs are very useful for specifying a custom Status method.
 Notices that all of the Doers (except Tasks) are collections of Doers.
 So hierarchies of Doers can be created.  In this way, you can add
 IfThens to Sections, and then have Sections coupled with IfThens!
+Here is an example of such wonderful craziness:
+
+
+	inst = installer.New()
+	defer inst.Done()
+
+	netSect := inst.NewSection("Configure the network")
+	ip := inst.Task{modules.LineInFile{
+		File:    "/etc/network/interfaces",
+		Line:    "    address 10.0.0.4",
+		Pattern: "^    address",
+		Store:   inst.Store,
+		After:   "^iface eth0",
+	}}
+	restart := inst.Task{modules.Command{
+		Cmd: "/etc/init.d/networking",
+		Opts: []string{"restart"},
+	}}
+	// Only run the restart command, if changes were made to the file.
+	sect.Add(inst.IfThen{ip, restart})
+
+	aptSect := inst.NewSection("Use apt to install some software")
+	pkgs := []string{"git", "gitk", "tig", "screen", "w3m"}
+	for _, pkg := range pkgs {
+		sect.AddTask(modules.Apt{Name: pkg})
+	}
+
+	// Only run the apt stuff if the network was reconfigured.
+	// It makes no sense to do this, but this is just an example.
+	inst.Add(inst.IfThen{netSect, aptSect})
+
+
