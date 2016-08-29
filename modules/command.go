@@ -9,9 +9,10 @@ import (
 )
 
 type Command struct {
-	Cmd       string
-	Opts      []string
-	PSPattern string
+	Cmd          string
+	Opts         []string
+	PSPattern    string
+	IgnoreErrors bool
 }
 
 func MakeCommand(cmd string, opts ...string) Command {
@@ -46,5 +47,8 @@ func (cmd Command) Remove() (string, error) {
 
 func (cmd Command) Install() (string, error) {
 	out, err := exec.Command(cmd.Cmd, cmd.Opts...).CombinedOutput()
+	if cmd.IgnoreErrors {
+		err = nil
+	}
 	return strings.Replace(string(out), "\n", "; ", -1), err
 }
