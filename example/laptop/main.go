@@ -39,9 +39,9 @@ func dotfiles() {
 	})
 
 	sect.AddTask(modules.CopyFile{
-		DestFile: "~/.mybashrc",
-		SrcFile:  "files/mybashrc",
-		Store:    inst.Store,
+		Dest:  "~/.mybashrc",
+		Src:   "files/mybashrc",
+		Store: inst.Store,
 	})
 
 	sect.AddTask(modules.HttpGet{
@@ -51,15 +51,15 @@ func dotfiles() {
 	})
 
 	sect.AddTask(modules.CopyFile{
-		DestFile: "~/.gitconfig",
-		SrcFile:  "files/gitconfig",
-		Store:    inst.Store,
+		Dest:  "~/.gitconfig",
+		Src:   "files/gitconfig",
+		Store: inst.Store,
 	})
 
 	sect.AddTask(modules.CopyFile{
-		DestFile: "~/.screenrc",
-		SrcFile:  "files/screenrc",
-		Store:    inst.Store,
+		Dest:  "~/.screenrc",
+		Src:   "files/screenrc",
+		Store: inst.Store,
 	})
 
 }

@@ -39,11 +39,11 @@ func main() {
 		Store:        inst.Store,
 	})
 	section.AddTask(modules.CopyFile{
-		DestFile: "/tmp/genesis_example/foo",
-		SrcFile:  inst.Dir + "/files/file.txt.tmpl",
-		Store:    inst.Store,
+		Dest:  "/tmp/genesis_example/foo",
+		Src:   inst.Dir + "/files/file.txt.tmpl",
+		Store: inst.Store,
 	})
-	section.AddTask(modules.Chmod{
+	section.AddTask(modules.File{
 		Path: "/tmp/genesis_example/foo",
 		Mode: 0755,
 	})
