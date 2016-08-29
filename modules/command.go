@@ -14,6 +14,10 @@ type Command struct {
 	PSPattern string
 }
 
+func MakeCommand(cmd string, opts ...string) Command {
+	return Command{Cmd: cmd, Opts: opts}
+}
+
 func (cmd Command) Describe() string {
 	return fmt.Sprintf("Command: %s %s", cmd.Cmd, strings.Join(cmd.Opts, " "))
 }

@@ -10,24 +10,24 @@ import (
 )
 
 type CopyFile struct {
-	DestFile string
-	SrcFile  string
-	Store    *store.Store
+	Dest  string
+	Src   string
+	Store *store.Store
 }
 
 func (cpf CopyFile) Describe() string {
-	return fmt.Sprintf("CopyFile: %s => %s", cpf.SrcFile, cpf.DestFile)
+	return fmt.Sprintf("CopyFile: %s => %s", cpf.Src, cpf.Dest)
 }
 
 func (cpf CopyFile) ID() string {
-	return "copyFile" + cpf.DestFile
+	return "copyFile" + cpf.Dest
 }
 
 func (cpf CopyFile) Remove() (string, error) {
 
-	cpf.DestFile = genesis.ExpandHome(cpf.DestFile)
+	cpf.Dest = genesis.ExpandHome(cpf.Dest)
 
-	err := cpf.Store.RestoreFile(cpf.DestFile, "")
+	err := cpf.Store.RestoreFile(cpf.Dest, "")
 	if err == nil {
 		return "Successfully restored destination file.", nil
 	}
@@ -36,19 +36,19 @@ func (cpf CopyFile) Remove() (string, error) {
 
 func (cpf CopyFile) Install() (string, error) {
 
-	cpf.DestFile = genesis.ExpandHome(cpf.DestFile)
+	cpf.Dest = genesis.ExpandHome(cpf.Dest)
 
-	bytes, err := ioutil.ReadFile(cpf.SrcFile)
+	bytes, err := ioutil.ReadFile(cpf.Src)
 	if err != nil {
 		return "Could not read source file.", err
 	}
 
-	err = cpf.Store.SaveFile(cpf.DestFile, "")
+	err = cpf.Store.SaveFile(cpf.Dest, "")
 	if err != nil {
 		return "Could not save snapshot to file store.", err
 	}
 
-	err = ioutil.WriteFile(cpf.DestFile, bytes, 0644)
+	err = ioutil.WriteFile(cpf.Dest, bytes, 0644)
 	if err != nil {
 		return "Could not write destination file.", err
 	}
@@ -59,13 +59,13 @@ func (cpf CopyFile) Install() (string, error) {
 
 func (cpf CopyFile) Status() (genesis.Status, string, error) {
 
-	cpf.DestFile = genesis.ExpandHome(cpf.DestFile)
+	cpf.Dest = genesis.ExpandHome(cpf.Dest)
 
-	src, err := ioutil.ReadFile(cpf.SrcFile)
+	src, err := ioutil.ReadFile(cpf.Src)
 	if err != nil {
 		return genesis.StatusFail, "Could not read source file.", err
 	}
-	dest, err := ioutil.ReadFile(cpf.DestFile)
+	dest, err := ioutil.ReadFile(cpf.Dest)
 	if err != nil {
 		return genesis.StatusFail, "Could not read destination file.", err
 	}
