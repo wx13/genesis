@@ -93,6 +93,9 @@ func (dpkg Dpkg) Status() (genesis.Status, string, error) {
 	output, err := cmd.CombinedOutput()
 	resp := strings.TrimSpace(string(output))
 	if err != nil {
+		if dpkg.Absent {
+			return genesis.StatusPass, "Package is not installed", nil
+		}
 		return genesis.StatusFail, resp, err
 	}
 

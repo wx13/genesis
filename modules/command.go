@@ -46,5 +46,5 @@ func (cmd Command) Remove() (string, error) {
 
 func (cmd Command) Install() (string, error) {
 	out, err := exec.Command(cmd.Cmd, cmd.Opts...).CombinedOutput()
-	return string(out), err
+	return strings.Replace(string(out), "\n", "; ", -1), err
 }
