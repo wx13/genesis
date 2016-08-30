@@ -64,11 +64,10 @@ func (lif LineInFile) Status() (genesis.Status, string, error) {
 	}
 	isAfter := len(lif.After) == 0
 	for _, line := range lines {
-		pattern := regexp.QuoteMeta(lif.Line)
+		match := lif.Line == line
 		if len(lif.Success) > 0 {
-			pattern = lif.Success
+			match, _ := regexp.MatchString(lif.Success, line)
 		}
-		match, _ := regexp.MatchString(pattern, line)
 		if match && isAfter {
 			return genesis.StatusPass, "Line is in file.", nil
 		}
