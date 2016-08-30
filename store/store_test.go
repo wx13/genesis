@@ -9,7 +9,7 @@ import (
 	"github.com/wx13/genesis/store"
 )
 
-func TestFile(t *testing.T) {
+func TestStore(t *testing.T) {
 
 	dir, err := ioutil.TempDir("", "genesis_test")
 	if err != nil {
@@ -35,6 +35,15 @@ func TestFile(t *testing.T) {
 	data, err := ioutil.ReadFile(filename)
 	if string(data) != text {
 		t.Error("Restored file is not equal to original file.")
+	}
+
+	text2 := "This is line 27,\nand this is line owt.\n3\nNow line four.\n"
+	s.SavePatch(filename, text, text2, "foo")
+	ioutil.WriteFile(filename, []byte(text2), 0644)
+	s.ApplyPatch(filename, "foo")
+	data, err = ioutil.ReadFile(filename)
+	if string(data) != text {
+		t.Error("Patched file is not equal to original file.")
 	}
 
 }
