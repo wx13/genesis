@@ -66,7 +66,7 @@ func (lif LineInFile) Status() (genesis.Status, string, error) {
 	for _, line := range lines {
 		match := lif.Line == line
 		if len(lif.Success) > 0 {
-			match, _ := regexp.MatchString(lif.Success, line)
+			match, _ = regexp.MatchString(lif.Success, line)
 		}
 		if match && isAfter {
 			return genesis.StatusPass, "Line is in file.", nil
