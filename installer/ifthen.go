@@ -19,8 +19,8 @@ func (ifthen IfThen) Status() (genesis.Status, error) {
 		return genesis.StatusUnknown, nil
 	}
 	if skip == "do" {
-		TempEmptyDoTags()
-		defer RestoreDoTags()
+		doTags := EmptyDoTags()
+		defer RestoreDoTags(doTags)
 	}
 	status := genesis.StatusPass
 	for _, task := range []genesis.Doer{ifthen.If, ifthen.Then} {
@@ -41,8 +41,8 @@ func (ifthen IfThen) Do() (bool, error) {
 		return false, nil
 	}
 	if skip == "do" {
-		TempEmptyDoTags()
-		defer RestoreDoTags()
+		doTags := EmptyDoTags()
+		defer RestoreDoTags(doTags)
 	}
 	changed, err := ifthen.If.Do()
 	if err != nil {
@@ -60,8 +60,8 @@ func (ifthen IfThen) Undo() (bool, error) {
 		return false, nil
 	}
 	if skip == "do" {
-		TempEmptyDoTags()
-		defer RestoreDoTags()
+		doTags := EmptyDoTags()
+		defer RestoreDoTags(doTags)
 	}
 	changed, err := ifthen.If.Undo()
 	if err != nil {

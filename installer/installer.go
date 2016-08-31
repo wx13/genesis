@@ -20,7 +20,7 @@ import (
 	"github.com/wx13/genesis/store"
 )
 
-var DoTags, SkipTags, TempDoTags []string
+var DoTags, SkipTags []string
 
 // Installer is a wrapper around modules to provide a nice
 // interface for building an installer.
@@ -210,14 +210,15 @@ func SkipID(id string) string {
 	return "pass"
 }
 
-func TempEmptyDoTags() {
-	TempDoTags := make([]string, len(DoTags))
-	copy(TempDoTags, DoTags)
+func EmptyDoTags() []string {
+	doTags := make([]string, len(DoTags))
+	copy(doTags, DoTags)
 	DoTags = []string{}
+	return doTags
 }
 
-func RestoreDoTags() {
-	DoTags = TempDoTags
+func RestoreDoTags(doTags []string) {
+	DoTags = doTags
 }
 
 func (inst *Installer) AddTask(module genesis.Module) {

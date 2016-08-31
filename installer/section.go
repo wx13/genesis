@@ -48,8 +48,8 @@ func (section Section) Status() (genesis.Status, error) {
 		return genesis.StatusUnknown, nil
 	}
 	if skip == "do" {
-		TempEmptyDoTags()
-		defer RestoreDoTags()
+		doTags := EmptyDoTags()
+		defer RestoreDoTags(doTags)
 	}
 	PrintSectionHeader(section.Name)
 	defer PrintSectionFooter(section.Name)
@@ -72,8 +72,8 @@ func (section Section) Do() (bool, error) {
 		return false, nil
 	}
 	if skip == "do" {
-		TempEmptyDoTags()
-		defer RestoreDoTags()
+		doTags := EmptyDoTags()
+		defer RestoreDoTags(doTags)
 	}
 	PrintSectionHeader(section.Name)
 	defer PrintSectionFooter(section.Name)
@@ -92,8 +92,8 @@ func (section Section) Undo() (bool, error) {
 		return false, nil
 	}
 	if skip == "do" {
-		TempEmptyDoTags()
-		defer RestoreDoTags()
+		doTags := EmptyDoTags()
+		defer RestoreDoTags(doTags)
 	}
 	PrintSectionHeader(section.Name)
 	defer PrintSectionFooter(section.Name)
