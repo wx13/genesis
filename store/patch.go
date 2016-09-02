@@ -11,6 +11,10 @@ import (
 // ApplyPatch applies a patch to a file.
 func (store *Store) ApplyPatch(filename, label string) error {
 
+	if store == nil {
+		return nil
+	}
+
 	// Read file.
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -38,6 +42,10 @@ func (store *Store) ApplyPatch(filename, label string) error {
 
 // SavePatch computes and stores the patch between to strings.
 func (store *Store) SavePatch(filename, origStr, newStr, label string) error {
+
+	if store == nil {
+		return nil
+	}
 
 	// Create patch
 	dmp := diffmatchpatch.New()

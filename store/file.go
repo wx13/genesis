@@ -9,6 +9,10 @@ import (
 // RestoreFile restores a file from backup.
 func (store *Store) RestoreFile(filename, label string) error {
 
+	if store == nil {
+		return nil
+	}
+
 	src := store.createPath(filename, label)
 
 	// If the backup file doesn't exist, then we remove the original.
@@ -31,6 +35,10 @@ func (store *Store) RestoreFile(filename, label string) error {
 
 // SaveFile makes a backup of a file.
 func (store *Store) SaveFile(filename, label string) error {
+
+	if store == nil {
+		return nil
+	}
 
 	// If we can't read the source file, then we can't back it up.
 	bytes, err := ioutil.ReadFile(filename)
