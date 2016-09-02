@@ -246,11 +246,23 @@ func (inst *Installer) History(dir string, cmd []string) error {
 	if err != nil {
 		return err
 	}
-	file, err := os.OpenFile(path.Join(dir, "history.txt"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		return err
+
+	filename := path.Join(dir, "history.txt")
+	data, err := ioutil.ReadFile(filename)
+	lines := []string{}
+	if err == nil {
+		lines = strings.Split(string(data), "\n")
 	}
-	_, err = file.WriteString(strings.Join(cmd, " ") + "\n")
-	file.Close()
+
+	if len(lines) > 1000 {
+		lines = lines[:1000]
+	}
+
+	line := strings.Join(cmd, " ")
+	if len(lines) == 0 || line != lines[0] {
+		lines = append([]string{line}, lines...)
+	}
+	ioutil.WriteFile(filename, []byte(strings.Join(lines, "\n")), 0666)
+
 	return err
 }
