@@ -22,7 +22,7 @@ func New(dir string) *Store {
 		usr, _ := user.Current()
 		dir = usr.HomeDir
 	}
-	store.Dir = path.Join(dir, ".genesis")
+	store.Dir = path.Join(dir, ".genesis/store")
 	err := os.MkdirAll(store.Dir, 0755)
 	if err != nil {
 		return nil
