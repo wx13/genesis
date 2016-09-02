@@ -81,6 +81,13 @@ func New() *Installer {
 		return nil
 	}
 
+	if inst.Install || inst.Remove {
+		err := inst.History(*storedir, os.Args)
+		if err != nil {
+			fmt.Println("Error saving command history:", err)
+		}
+	}
+
 	inst.GatherFacts()
 	inst.extractFiles(*tmpdir)
 
@@ -227,4 +234,23 @@ func (inst *Installer) AddTask(module genesis.Module) {
 
 func (inst *Installer) Add(task genesis.Doer) {
 	inst.Tasks = append(inst.Tasks, task)
+}
+
+func (inst *Installer) History(dir string, cmd []string) error {
+	if len(dir) == 0 {
+		usr, _ := user.Current()
+		dir = usr.HomeDir
+	}
+	dir = path.Join(dir, ".genesis")
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return err
+	}
+	file, err := os.OpenFile(path.Join(dir, "history.txt"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(strings.Join(cmd, " ") + "\n")
+	file.Close()
+	return err
 }
