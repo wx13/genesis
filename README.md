@@ -10,6 +10,7 @@ Status
 ------
 
 This is experimental software, with high API instability.
+However, I am currently using it in my own work.
 
 
 Motivation
