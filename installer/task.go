@@ -48,8 +48,13 @@ func (task Task) Do() (bool, error) {
 		ReportFail(msg, err)
 		return false, err
 	}
-	ReportPass(msg, err)
-	return true, nil
+	status, msg2, err := task.Module.Status()
+	if status == genesis.StatusPass {
+		ReportDone(msg, err)
+		return true, err
+	}
+	ReportFail(msg2, err)
+	return false, err
 }
 
 func (task Task) Undo() (bool, error) {

@@ -6,6 +6,13 @@ import (
 	"github.com/wx13/genesis"
 )
 
+func ReportDone(msg string, err error) {
+	fmt.Println("    \033[32m[DONE]\033[0m", msg)
+	if err != nil {
+		fmt.Println("    ", err)
+	}
+}
+
 func ReportPass(msg string, err error) {
 	fmt.Println("    \033[32m[PASS]\033[0m", msg)
 	if err != nil {
