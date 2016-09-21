@@ -251,7 +251,12 @@ func (inst *Installer) History(dir string, cmd []string) error {
 	data, err := ioutil.ReadFile(filename)
 	lines := []string{}
 	if err == nil {
-		lines = strings.Split(string(data), "\n")
+		l := strings.Split(string(data), "\n")
+		for _, s := range l {
+			if len(l) > 0 {
+				lines = append(lines, s)
+			}
+		}
 	}
 
 	if len(lines) > 1000 {
