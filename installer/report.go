@@ -7,7 +7,7 @@ import (
 )
 
 func ReportDone(msg string, err error) {
-	fmt.Println("    \033[32m[DONE]\033[0m", msg)
+	fmt.Println("    \033[1;32m[DONE]\033[0m", msg)
 	if err != nil {
 		fmt.Println("    ", err)
 	}
