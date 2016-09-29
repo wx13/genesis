@@ -4,11 +4,13 @@ import (
 	"github.com/wx13/genesis"
 )
 
+// IfThen is a type of genesis.Doer. It runs doer B if and only if doer A runs.
 type IfThen struct {
 	If   genesis.Doer
 	Then genesis.Doer
 }
 
+// ID for IfThen is just the combination of the two Doer IDs.
 func (ifthen IfThen) ID() string {
 	return ifthen.If.ID() + ifthen.Then.ID()
 }

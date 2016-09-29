@@ -1,3 +1,6 @@
+// Package installer is the installer for the genesis package.
+// It handles file backup, manages history, reports on progress,
+// and invents higher-order tasks (such as if-then tasks)>
 package installer
 
 import (

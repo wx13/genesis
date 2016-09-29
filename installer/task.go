@@ -4,6 +4,9 @@ import (
 	"github.com/wx13/genesis"
 )
 
+// Task is the most fundamental Doer. It consists of just a single module.
+// All other Doers contain tasks at their deepest levels (i.e. only a Task
+// can contain a module directly.
 type Task struct {
 	genesis.Module
 }

@@ -4,6 +4,10 @@ import (
 	"github.com/wx13/genesis"
 )
 
+// Section is a type of genesis.Doer.  It groups Doers together
+// with a label.  It is useful for two reasons: 1) it allows for
+// pretty labels in the output, and 2) it can group tasks together
+// into a Doer that can be used as part of other Doers.
 type Section struct {
 	Tasks []genesis.Doer
 	Name  string

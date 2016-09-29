@@ -1,3 +1,6 @@
+// Package store provides support for keeping track of changes
+// to files.  It can keep a copy of a file, or a patch to reverse
+// changes to a file.
 package store
 
 import (

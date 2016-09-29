@@ -3,7 +3,7 @@ Genesis
 
 Genesis is a Go library for building stand-alone installers.
 It is intended as a configuration management utility for
-embedded systems.
+embedded systems, but it can be used for a variety of systems.
 
 
 Status

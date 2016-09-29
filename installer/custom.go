@@ -4,6 +4,8 @@ import (
 	"github.com/wx13/genesis"
 )
 
+// Custom is a type of genesis.Doer.  It is a wrapper around another
+// Doer which allows for custom Status/Do/Undo functions.
 type Custom struct {
 	Task genesis.Doer
 	S    func() (genesis.Status, error)
