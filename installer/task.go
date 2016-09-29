@@ -32,29 +32,38 @@ func (task Task) Status() (genesis.Status, error) {
 }
 
 func (task Task) Do() (bool, error) {
+
 	id := task.ID()
 	if SkipID(id) != "do" {
 		return false, nil
 	}
+
 	desc := task.Describe()
 	PrintHeader(id, desc)
+
+	// If status is passing, then we don't have
+	// to do anything.
 	status, msg, err := task.Module.Status()
 	if status == genesis.StatusPass {
 		ReportPass(msg, err)
 		return false, nil
 	}
+
+	// Otherwise, run the installer.
 	msg, err = task.Install()
 	if err != nil {
 		ReportFail(msg, err)
 		return false, err
 	}
+
+	// Check results.
 	status, msg2, err := task.Module.Status()
-	if status == genesis.StatusPass {
-		ReportDone(msg, err)
-		return true, err
+	if status == genesis.StatusFail {
+		ReportFail(msg2, err)
+		return false, err
 	}
-	ReportFail(msg2, err)
-	return false, err
+	ReportDone(msg, err)
+	return true, err
 }
 
 func (task Task) Undo() (bool, error) {
