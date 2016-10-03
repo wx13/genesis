@@ -53,6 +53,9 @@ func (get HttpGet) Install() (string, error) {
 	defer out.Close()
 
 	resp, err := http.Get(get.Url)
+	if err != nil {
+		return "Could not fetch file.", err
+	}
 	defer resp.Body.Close()
 
 	_, err = io.Copy(out, resp.Body)
@@ -74,6 +77,9 @@ func (get HttpGet) Status() (genesis.Status, string, error) {
 	}
 
 	resp, err := http.Get(get.Url)
+	if err != nil {
+		return genesis.StatusFail, "Could not fetch file.", err
+	}
 	defer resp.Body.Close()
 	src, err := ioutil.ReadAll(resp.Body)
 
