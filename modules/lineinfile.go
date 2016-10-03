@@ -20,6 +20,7 @@ type LineInFile struct {
 	Label   string
 	Before  string
 	After   string
+	Absent  bool
 }
 
 func (lif LineInFile) Describe() string {
@@ -62,6 +63,17 @@ func (lif LineInFile) Status() (genesis.Status, string, error) {
 	if err != nil {
 		return genesis.StatusFail, "Could not read file.", err
 	}
+
+	if lif.Absent {
+		for _, line := range lines {
+			match, _ := regexp.MatchString(lif.Pattern, line)
+			if match {
+				return genesis.StatusFail, "Line is in file.", nil
+			}
+		}
+		return genesis.StatusPass, "Line is absent from file.", nil
+	}
+
 	isAfter := len(lif.After) == 0
 	for _, line := range lines {
 		match := lif.Line == line
@@ -96,7 +108,9 @@ func (lif LineInFile) Install() (string, error) {
 	isAfter := len(lif.After) == 0
 	for i, line := range lines {
 		match, _ := regexp.MatchString(lif.Pattern, line)
-		if match && isAfter {
+		if match && lif.Absent {
+			lines = append(lines[:i], lines[i+1:]...)
+		} else if match && isAfter {
 			lines[i] = lif.Line
 			done = true
 			break
@@ -114,7 +128,7 @@ func (lif LineInFile) Install() (string, error) {
 			}
 		}
 	}
-	if !done {
+	if !done && !lif.Absent {
 		lines = append(lines, lif.Line)
 	}
 
