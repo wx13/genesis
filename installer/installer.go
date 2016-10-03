@@ -257,7 +257,7 @@ func (inst *Installer) History(dir string, cmd []string) error {
 	if err == nil {
 		l := strings.Split(string(data), "\n")
 		for _, s := range l {
-			if len(l) > 0 {
+			if len(s) > 0 {
 				lines = append(lines, s)
 			}
 		}
