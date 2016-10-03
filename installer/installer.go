@@ -150,8 +150,6 @@ func (inst *Installer) extractFiles(tmpdir string) error {
 // Done finishes up the installer process.
 func (inst *Installer) Done() {
 
-	defer inst.CleanUp()
-
 	switch {
 
 	case inst.Remove:
@@ -171,6 +169,9 @@ func (inst *Installer) Done() {
 		}
 
 	}
+
+	ReportSummary()
+	inst.CleanUp()
 
 }
 
