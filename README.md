@@ -1,33 +1,35 @@
 Genesis
 =======
 
-Genesis is a Go library for building stand-alone installers.
-It is intended as a configuration management utility for
-embedded systems, but it can be used for pretty much any system.
+Genesis is a Go library for building stand-alone installers. It is
+intended as a configuration management utility for embedded systems, but
+it can be used for pretty much any system.
 
 Genesis can install, uninstall (reverse all installation steps), and
-report status. You can tell it to re-run certain steps or sections,
-and/or to skip some.
+report status. You can construct groups of tasks, define sections, and
+have tasks/groups/sections run conditionally based on the actions of
+other tasks/groups/sections. You can tell it to re-run certain steps or
+sections, and/or to skip some.
 
 
 Status
 ------
 
-This is experimental software, with high API instability.
-However, I am currently using it in my own work.
+This is experimental software, with high API instability. However, I am
+currently using it in my own work.
 
 
 Motivation
 ----------
 
-Traditional configuration management systems (chef, ansible, etc.)
-don't work well for embedded systems because they tend to assume:
+Traditional configuration management systems (chef, ansible, etc.) don't
+work well for embedded systems because they tend to assume:
 
 - the target is accessible by network and the network has been configured
 - the target is running an ssh server
 - supporting software has been installed (python, chef client, etc).
 
-Genesis is designed to configure a system *from scratch*.  See the `doc`
+Genesis is designed to configure a system *from scratch*. See the `doc`
 directory for more information.
 
 
@@ -79,8 +81,8 @@ Now build the executable and append the zip file:
     cat files.zip >> my_installer
     zip -A my_installer
 
-This packages the zip file into the installer binary, so that
-it is completely standalone.  Run the binary with the `-install`, `-status`,
-or `-remove` flags to install / check status / remove.
+This packages the zip file into the installer binary, so that it is
+completely standalone. Run the binary with the `-install`, `-status`, or
+`-remove` flags to install / check status / remove.
 
 
