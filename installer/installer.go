@@ -271,7 +271,7 @@ func (inst *Installer) History(dir string, cmd []string) error {
 	if len(lines) == 0 || line != lines[0] {
 		lines = append([]string{line}, lines...)
 	}
-	ioutil.WriteFile(filename, []byte(strings.Join(lines, "\n")+"\n"), 0666)
+	err = ioutil.WriteFile(filename, []byte(strings.Join(lines, "\n")+"\n"), 0666)
 
 	return err
 }
