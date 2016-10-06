@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/kardianos/osext"
+	"github.com/robbiev/dilemma"
 
 	"github.com/wx13/genesis"
 	"github.com/wx13/genesis/store"
@@ -58,7 +59,27 @@ func New() *Installer {
 	storedir := flag.String("store", "", "Storage directory for snapshots. Defaults to user's home directory.")
 	dotags := flag.String("tags", "", "Specify comma-separated tags to run.  Defaults to all.")
 	skipTags := flag.String("skip-tags", "", "Specify comma-separated tags to skip.  Defaults to none.")
+	rerun := flag.Bool("rerun", false, "Rerun a previous command.")
 	flag.Parse()
+
+	if *rerun {
+		cmds := GetHistory(*storedir)
+		if len(cmds) > 10 {
+			cmds = cmds[:10]
+		}
+		menu := dilemma.Config{
+			Title:   "Select a command:",
+			Help:    "Use the up/down arrow keys, then enter to select.",
+			Options: cmds,
+		}
+		cmd, cancel, err := dilemma.Prompt(menu)
+		if err != nil || cancel == dilemma.CtrlC {
+			fmt.Println("Cancelled.")
+			return nil
+		}
+		os.Args = strings.Fields(cmd)
+		flag.Parse()
+	}
 
 	inst := Installer{
 		Status:  *status,
@@ -85,7 +106,7 @@ func New() *Installer {
 	}
 
 	if inst.Install || inst.Remove {
-		err := inst.History(*storedir, os.Args)
+		err := SaveHistory(*storedir, os.Args)
 		if err != nil {
 			fmt.Println("Error saving command history:", err)
 		}
@@ -240,18 +261,18 @@ func (inst *Installer) Add(task genesis.Doer) {
 	inst.Tasks = append(inst.Tasks, task)
 }
 
-func (inst *Installer) History(dir string, cmd []string) error {
+func getHistoryFile(dir string) (string, string) {
 	if len(dir) == 0 {
 		usr, _ := user.Current()
 		dir = usr.HomeDir
 	}
 	dir = path.Join(dir, ".genesis")
-	err := os.MkdirAll(dir, 0755)
-	if err != nil {
-		return err
-	}
-
 	filename := path.Join(dir, "history.txt")
+	return dir, filename
+}
+
+func GetHistory(dir string) []string {
+	_, filename := getHistoryFile(dir)
 	data, err := ioutil.ReadFile(filename)
 	lines := []string{}
 	if err == nil {
@@ -262,9 +283,20 @@ func (inst *Installer) History(dir string, cmd []string) error {
 			}
 		}
 	}
-
 	if len(lines) > 1000 {
 		lines = lines[:1000]
+	}
+	return lines
+}
+
+func SaveHistory(dir string, cmd []string) error {
+
+	lines := GetHistory(dir)
+	dir, filename := getHistoryFile(dir)
+
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return err
 	}
 
 	line := strings.Join(cmd, " ")
