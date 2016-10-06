@@ -103,7 +103,7 @@ func (section Section) Undo() (bool, error) {
 	defer PrintSectionFooter(section.Name)
 	for k := len(section.Tasks) - 1; k >= 0; k-- {
 		task := section.Tasks[k]
-		changed, err := task.Do()
+		changed, err := task.Undo()
 		if err != nil {
 			return changed, err
 		}
