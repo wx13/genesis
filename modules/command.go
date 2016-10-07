@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/wx13/genesis"
 )
@@ -13,6 +14,7 @@ type Command struct {
 	Opts         []string
 	PSPattern    string
 	IgnoreErrors bool
+	Timeout      time.Duration
 }
 
 func MakeCommand(cmd string, opts ...string) Command {
@@ -46,9 +48,38 @@ func (cmd Command) Remove() (string, error) {
 }
 
 func (cmd Command) Install() (string, error) {
-	out, err := exec.Command(cmd.Cmd, cmd.Opts...).CombinedOutput()
-	if cmd.IgnoreErrors {
-		err = nil
+
+	// Create an output channel, so we can implement a timeout.
+	type output struct {
+		msg string
+		err error
 	}
-	return strings.Replace(string(out), "\n", "; ", -1), err
+	done := make(chan output)
+
+	// Go run the command and write to channel when done.
+	go func() {
+		out, err := exec.Command(cmd.Cmd, cmd.Opts...).CombinedOutput()
+		if cmd.IgnoreErrors {
+			err = nil
+		}
+		msg := strings.Replace(string(out), "\n", "; ", -1)
+		done <- output{msg, err}
+	}()
+
+	// If timeout is not set, set it to a really long time.
+	if cmd.Timeout <= 0 {
+		cmd.Timeout = time.Hour * 100000
+	}
+
+	// Wait for output, but with a timeout.
+	select {
+	case <-time.After(cmd.Timeout):
+		if cmd.IgnoreErrors {
+			return "Command timed out", nil
+		}
+		return "Command timed out", fmt.Errorf("command timed out")
+	case out := <-done:
+		return out.msg, out.err
+	}
+
 }
