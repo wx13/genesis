@@ -18,7 +18,6 @@ import (
 	"strings"
 
 	"github.com/kardianos/osext"
-	"github.com/robbiev/dilemma"
 
 	"github.com/wx13/genesis"
 	"github.com/wx13/genesis/store"
@@ -63,22 +62,11 @@ func New() *Installer {
 	flag.Parse()
 
 	if *rerun {
-		cmds := GetHistory(*storedir)
-		if len(cmds) > 10 {
-			cmds = cmds[:10]
+		cmd, err := Rerun(*storedir)
+		if err == nil {
+			os.Args = strings.Fields(cmd)
+			flag.Parse()
 		}
-		menu := dilemma.Config{
-			Title:   "Select a command:",
-			Help:    "Use the up/down arrow keys, then enter to select.",
-			Options: cmds,
-		}
-		cmd, cancel, err := dilemma.Prompt(menu)
-		if err != nil || cancel == dilemma.CtrlC {
-			fmt.Println("Cancelled.")
-			return nil
-		}
-		os.Args = strings.Fields(cmd)
-		flag.Parse()
 	}
 
 	inst := Installer{
