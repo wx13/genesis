@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/user"
 	"path"
 )
@@ -60,6 +61,18 @@ func FileExists(path string) bool {
 		return true
 	}
 	return false
+}
+
+// IsRunning checks to see if a process is running.
+func IsRunning(pattern string) (bool, error) {
+	out, err := exec.Command("pgrep", pattern).CombinedOutput()
+	if err != nil {
+		return false, err
+	}
+	if len(out) > 0 {
+		return true, nil
+	}
+	return false, nil
 }
 
 // ExpandHome expands a leading tilde to the user's home directory.

@@ -33,11 +33,11 @@ func (cmd Command) Status() (genesis.Status, string, error) {
 	if len(cmd.PSPattern) == 0 {
 		return genesis.StatusUnknown, "Cannot discern whether a command has been run or not.", nil
 	}
-	out, err := exec.Command("pgrep", cmd.PSPattern).CombinedOutput()
+	isRunning, err := genesis.IsRunning(cmd.PSPattern)
 	if err != nil {
-		return genesis.StatusUnknown, "Cannot discern whether a command has been run or not.", err
+		return genesis.StatusUnknown, "Cannot tell if the process is running.", err
 	}
-	if len(out) > 0 {
+	if isRunning {
 		return genesis.StatusPass, cmd.PSPattern + " is running", nil
 	}
 	return genesis.StatusFail, cmd.PSPattern + " is not running", err
