@@ -14,6 +14,7 @@ type File struct {
 	Mode   os.FileMode
 	Owner  string
 	Absent bool
+	Local  bool // Don't follow links
 }
 
 func (file File) Describe() string {
@@ -26,6 +27,9 @@ func (file File) ID() string {
 
 func (file File) Status() (genesis.Status, string, error) {
 	stat, err := os.Stat(file.Path)
+	if file.Local {
+		stat, err = os.Lstat(file.Path)
+	}
 	if file.Absent {
 		if err == nil {
 			return genesis.StatusFail, "File exists", nil
