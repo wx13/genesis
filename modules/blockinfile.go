@@ -105,11 +105,11 @@ func (bif BlockInFile) Install() (string, error) {
 	if start < 0 {
 		lines = append(lines, bif.Lines...)
 	} else {
-		end := bif.findLine(bif.Patterns[1], lines[start:])
+		end := start + bif.findLine(bif.Patterns[1], lines[start:])
 		if end < 0 {
 			lines = append(lines, bif.Lines...)
 		} else {
-			lines = append(lines[:(start-1)], append(bif.Lines, lines[(end+1):]...)...)
+			lines = append(lines[:start], append(bif.Lines, lines[(end+1):]...)...)
 		}
 	}
 	bif.writeFile(lines)
