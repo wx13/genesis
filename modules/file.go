@@ -79,28 +79,36 @@ func (file File) Remove() (string, error) {
 }
 
 func (file File) Install() (string, error) {
+	paths, err := filepath.Glob(file.Path)
+	if err != nil {
+		return "File glob failed", err
+	}
 	if file.Absent {
-		err := os.Remove(file.Path)
-		if err != nil {
-			return "Failed to remove file", err
+		for _, path := range paths {
+			err := os.Remove(path)
+			if err != nil {
+				return "Failed to remove file", err
+			}
 		}
 		return "Successfully removed file", nil
 	}
-	if len(file.Owner) > 0 {
-		user, err := user.Lookup(file.Owner)
-		if err != nil {
-			return "Cannot lookup owner.", err
+	for _, path := range paths {
+		if len(file.Owner) > 0 {
+			user, err := user.Lookup(file.Owner)
+			if err != nil {
+				return "Cannot lookup owner.", err
+			}
+			uid, _ := strconv.Atoi(user.Uid)
+			gid, _ := strconv.Atoi(user.Gid)
+			err = os.Chown(path, uid, gid)
+			if err != nil {
+				return "Cannot change ownership.", err
+			}
 		}
-		uid, _ := strconv.Atoi(user.Uid)
-		gid, _ := strconv.Atoi(user.Gid)
-		err = os.Chown(file.Path, uid, gid)
+		err := os.Chmod(path, file.Mode)
 		if err != nil {
-			return "Cannot change ownership.", err
+			return "Cannot change permissions.", err
 		}
-	}
-	err := os.Chmod(file.Path, file.Mode)
-	if err != nil {
-		return "Cannot change permissions.", err
 	}
 	return "Successfully changed permissions.", nil
 }
