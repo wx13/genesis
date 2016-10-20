@@ -104,16 +104,15 @@ func (bif BlockInFile) Install() (string, error) {
 	start := bif.findLine(bif.Patterns[0], lines)
 	if start < 0 {
 		lines = append(lines, bif.Lines...)
-		bif.writeFile(lines)
 	} else {
 		end := bif.findLine(bif.Patterns[1], lines[start:])
 		if end < 0 {
 			lines = append(lines, bif.Lines...)
-			bif.writeFile(lines)
 		} else {
 			lines = append(lines[:(start-1)], append(bif.Lines, lines[(end+1):]...)...)
 		}
 	}
+	bif.writeFile(lines)
 
 	bif.Store.SavePatch(bif.File, origLines, strings.Join(lines, "\n"), bif.Label)
 
