@@ -73,21 +73,17 @@ func (bif BlockInFile) Status() (genesis.Status, string, error) {
 	lines := bif.Lines
 	if len(bif.Success) > 0 {
 		lines = bif.Success
-	} else {
-		for k, line := range lines {
-			lines[k] = regexp.QuoteMeta(line)
-		}
 	}
 OUTER:
 	for fileIdx := range fileLines {
-		match, _ := regexp.MatchString(lines[0], fileLines[fileIdx])
+		match := lines[0] == fileLines[fileIdx]
 		if match {
 			for blockIdx, blockLine := range lines {
 				k := fileIdx + blockIdx
 				if k > len(fileLines) {
 					continue OUTER
 				}
-				match, _ := regexp.MatchString(blockLine, fileLines[k])
+				match := blockLine == fileLines[k]
 				if !match {
 					continue OUTER
 				}
