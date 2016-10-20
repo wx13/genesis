@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strconv"
 
 	"github.com/wx13/genesis"
@@ -25,23 +26,50 @@ func (file File) ID() string {
 	return fmt.Sprintf("file %+v", file)
 }
 
-func (file File) Status() (genesis.Status, string, error) {
-	stat, err := os.Stat(file.Path)
-	if file.Local {
-		stat, err = os.Lstat(file.Path)
+type fileStat struct {
+	path string
+	info os.FileInfo
+	err  error
+}
+
+func (file File) globStat() []fileStat {
+	stats := []fileStat{}
+	paths, err := filepath.Glob(file.Path)
+	if err != nil {
+		return stats
 	}
+	for _, p := range paths {
+		stat, err := os.Stat(p)
+		if file.Local {
+			stat, err = os.Lstat(p)
+		}
+		stats = append(stats, fileStat{
+			path: p,
+			info: stat,
+			err:  err,
+		})
+	}
+	return stats
+}
+
+func (file File) Status() (genesis.Status, string, error) {
+	stats := file.globStat()
 	if file.Absent {
-		if err == nil {
-			return genesis.StatusFail, "File exists", nil
+		for _, s := range stats {
+			if s.err == nil {
+				return genesis.StatusFail, "File exists: " + s.path, nil
+			}
 		}
 		return genesis.StatusPass, "File does not exist", nil
 	}
-	if err != nil {
-		return genesis.StatusFail, "Cannot stat file.", err
-	}
-	if stat.Mode() != file.Mode {
-		msg := fmt.Sprintf("File mode should be %o, but is %o", file.Mode, stat.Mode())
-		return genesis.StatusFail, msg, fmt.Errorf("Incorrect file permissions")
+	for _, s := range stats {
+		if s.err != nil {
+			return genesis.StatusFail, "Cannot stat file: " + s.path, s.err
+		}
+		if s.info.Mode() != file.Mode {
+			msg := fmt.Sprintf("File mode should be %o, but is %o", file.Mode, s.info.Mode())
+			return genesis.StatusFail, msg, fmt.Errorf("Incorrect file permissions")
+		}
 	}
 	return genesis.StatusPass, "File mode is correct.", nil
 }
