@@ -10,11 +10,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"os/user"
 	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/kardianos/osext"
@@ -100,7 +98,7 @@ func New() *Installer {
 		}
 	}
 
-	inst.GatherFacts()
+	inst.Facts = genesis.GatherFacts()
 	inst.extractFiles(*tmpdir)
 
 	return &inst
@@ -188,28 +186,6 @@ func (inst *Installer) Done() {
 func (inst *Installer) CleanUp() {
 	fmt.Println("")
 	os.RemoveAll(inst.Dir)
-}
-
-// GatherFacts learns stuff about the target system.
-func (inst *Installer) GatherFacts() {
-
-	inst.Facts = genesis.Facts{}
-
-	inst.Facts.ArchType = runtime.GOARCH
-	inst.Facts.OS = runtime.GOOS
-	cmd := exec.Command("uname", "-m")
-	output, err := cmd.Output()
-	if err == nil {
-		inst.Facts.Arch = strings.TrimSpace(string(output))
-	}
-
-	inst.Facts.Hostname, _ = os.Hostname()
-
-	u, err := user.Current()
-	if err != nil {
-		inst.Facts.Username = u.Username
-	}
-
 }
 
 func SkipID(id string) string {

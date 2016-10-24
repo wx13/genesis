@@ -3,10 +3,13 @@ package genesis
 import (
 	"crypto/md5"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/user"
 	"path"
+	"runtime"
+	"strings"
 )
 
 // Facts stores discovered information about the target system.
@@ -16,6 +19,39 @@ type Facts struct {
 	OS       string
 	Hostname string
 	Username string
+	Distro   string
+}
+
+// GatherFacts learns stuff about the target system.
+func GatherFacts() Facts {
+
+	facts := Facts{}
+
+	// Set architecture facts.
+	facts.ArchType = runtime.GOARCH
+	facts.OS = runtime.GOOS
+	cmd := exec.Command("uname", "-m")
+	output, err := cmd.Output()
+	if err == nil {
+		facts.Arch = strings.TrimSpace(string(output))
+	}
+
+	// Learn linux distro.
+	b, err := ioutil.ReadFile("/etc/issue")
+	if err == nil {
+		f := strings.Fields(string(b))
+		facts.Distro = f[0]
+	}
+
+	facts.Hostname, _ = os.Hostname()
+
+	u, err := user.Current()
+	if err != nil {
+		facts.Username = u.Username
+	}
+
+	return facts
+
 }
 
 // Status represents a Pass/Fail/Unknown.
