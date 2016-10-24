@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"path"
 
 	"github.com/wx13/genesis/installer"
 	"github.com/wx13/genesis/modules"
@@ -18,7 +19,7 @@ func aptGet() {
 	sect := installer.NewSection("Apt-Get install some software")
 	defer inst.Add(sect)
 
-	pkgs := []string{"git", "gitk", "tig", "screen", "w3m"}
+	pkgs := []string{"git", "gitk", "tig", "screen"}
 	for _, pkg := range pkgs {
 		sect.AddTask(modules.Apt{Name: pkg})
 	}
@@ -40,7 +41,7 @@ func dotfiles() {
 
 	sect.AddTask(modules.CopyFile{
 		Dest:  "~/.mybashrc",
-		Src:   "files/mybashrc",
+		Src:   path.Join(inst.Dir, "files/mybashrc"),
 		Store: inst.Store,
 	})
 
@@ -52,13 +53,13 @@ func dotfiles() {
 
 	sect.AddTask(modules.CopyFile{
 		Dest:  "~/.gitconfig",
-		Src:   "files/gitconfig",
+		Src:   path.Join(inst.Dir, "files/gitconfig"),
 		Store: inst.Store,
 	})
 
 	sect.AddTask(modules.CopyFile{
 		Dest:  "~/.screenrc",
-		Src:   "files/screenrc",
+		Src:   path.Join(inst.Dir, "files/screenrc"),
 		Store: inst.Store,
 	})
 
@@ -108,6 +109,29 @@ func sshConfig() {
 	}
 }
 
+func raspbianSetup() {
+
+	sect := installer.NewSection("Configure Raspbian")
+	defer inst.Add(sect)
+
+	// Configure monitor
+	sect.AddTask(modules.LineInFile{
+		File:    "/boot/config.txt",
+		Pattern: "hdmi_group",
+		Line:    "hdmi_group=2",
+		Store:   inst.Store,
+		Label:   "hdmi_group",
+	})
+	sect.AddTask(modules.LineInFile{
+		File:    "/boot/config.txt",
+		Pattern: "hdmi_mode",
+		Line:    "hdmi_mode=82",
+		Store:   inst.Store,
+		Label:   "hdmi_mode",
+	})
+
+}
+
 func main() {
 
 	inst = installer.New()
@@ -116,6 +140,9 @@ func main() {
 	}
 	defer inst.Done()
 
+	if inst.Facts.Distro == "Raspbian" {
+		raspbianSetup()
+	}
 	dotfiles()
 	sshConfig()
 	aptGet()
