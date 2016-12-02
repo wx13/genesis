@@ -26,80 +26,141 @@ var DoTags, SkipTags []string
 // Installer is a wrapper around modules to provide a nice
 // interface for building an installer.
 type Installer struct {
-	Status  bool
-	Remove  bool
-	Install bool
-	Verbose bool
-	Facts   genesis.Facts
-	Dir     string
-	Store   *store.Store
-	Tasks   []genesis.Doer
+	Cmd      string
+	Verbose  bool
+	Facts    genesis.Facts
+	Dir      string
+	Store    *store.Store
+	Tasks    []genesis.Doer
+	Tmpdir   string
+	DoTags   string
+	SkipTags string
+}
+
+func (inst *Installer) ParseFlags() {
+
+	// Grab the executable name for usage printout.
+	execName := path.Base(os.Args[0])
+
+	// Main help screen.
+	flag.Usage = func() {
+		fmt.Println("")
+		fmt.Println("Usage:")
+		fmt.Println("")
+		fmt.Printf("  %s -h\n", execName)
+		fmt.Printf("  %s (status|install|remove) [-verbose] [-tmpdir] [-storedir] [-tags] [-skip-tags]\n", execName)
+		fmt.Printf("  %s build [dir...]\n", execName)
+		fmt.Printf("  %s rerun\n", execName)
+		fmt.Println("")
+		fmt.Println("Commands:")
+		fmt.Println("")
+		fmt.Println("  status    Show the current installation.")
+		fmt.Println("  install   Run the installer.")
+		fmt.Println("  remove    Reverse the installation process.")
+		fmt.Println("  rerun     Start a command prompt to search/view/edit/run previous commands.")
+		fmt.Println("  build     Add file resources to executable to build a stand-alone installer.")
+		fmt.Println("")
+		fmt.Println("For details on individual command options, run './installer <cmd> -h'.")
+		fmt.Println("")
+		flag.PrintDefaults()
+	}
+
+	// Options for the "run" commands: install, remove, status.
+	runFlag := flag.NewFlagSet("run", flag.ExitOnError)
+	verbose := runFlag.Bool("verbose", false, "Verbose")
+	tmpdir := runFlag.String("tempdir", "", "Temp directory; empty string == default location")
+	storedir := runFlag.String("store", "", "Storage directory for snapshots. Defaults to user's home directory.")
+	doTags := runFlag.String("tags", "", "Specify comma-separated tags to run.  Defaults to all.")
+	skipTags := runFlag.String("skip-tags", "", "Specify comma-separated tags to skip.  Defaults to none.")
+	runFlag.Usage = func() {
+		fmt.Println("")
+		fmt.Println("Usage:")
+		fmt.Println("")
+		fmt.Printf("  %s (status|install|remove) [-verbose] [-tmpdir] [-storedir] [-tags] [-skip-tags]\n", execName)
+		fmt.Println("")
+		fmt.Println("Options:")
+		fmt.Println("")
+		runFlag.PrintDefaults()
+		fmt.Println("")
+	}
+
+	buildFlag := flag.NewFlagSet("build", flag.ExitOnError)
+	rerunFlag := flag.NewFlagSet("rerun", flag.ExitOnError)
+
+	// Print help screen if no arguments are given.
+	if len(os.Args) <= 1 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	// Get the subcommand.
+	cmd := os.Args[1]
+
+	// Parse the subcommand options.
+	switch cmd {
+	case "install", "remove", "status":
+		runFlag.Parse(os.Args[2:])
+	case "build":
+		buildFlag.Parse(os.Args[2:])
+	case "rerun":
+		rerunFlag.Parse(os.Args[2:])
+	default:
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	inst.Cmd = cmd
+	inst.Verbose = *verbose
+	inst.Dir = *storedir
+	inst.Tmpdir = *tmpdir
+	inst.DoTags = *doTags
+	inst.SkipTags = *skipTags
+
 }
 
 // New creates a new installer object.
 func New() *Installer {
 
-	flag.Usage = func() {
-		fmt.Println("")
-		fmt.Println("Usage:")
-		fmt.Println("./installer -h")
-		fmt.Println("./installer (-status|-install|-remove)")
-		fmt.Println("")
-		flag.PrintDefaults()
-	}
+	inst := Installer{}
+	inst.Tasks = []genesis.Doer{}
+	inst.ParseFlags()
 
-	status := flag.Bool("status", false, "Status.")
-	remove := flag.Bool("remove", false, "Remove (uninstall).")
-	install := flag.Bool("install", false, "Install.")
-	verbose := flag.Bool("verbose", false, "Verbose")
-	tmpdir := flag.String("tempdir", "", "Temp directory; empty string == default location")
-	storedir := flag.String("store", "", "Storage directory for snapshots. Defaults to user's home directory.")
-	dotags := flag.String("tags", "", "Specify comma-separated tags to run.  Defaults to all.")
-	skipTags := flag.String("skip-tags", "", "Specify comma-separated tags to skip.  Defaults to none.")
-	rerun := flag.Bool("rerun", false, "Rerun a previous command.")
-	flag.Parse()
-
-	if *rerun {
-		cmd, err := Rerun(*storedir)
+	// If "rerun" is specified, use the command history to
+	// rewrite the command options.
+	if inst.Cmd == "rerun" {
+		line, err := Rerun(inst.Dir)
 		if err == nil {
-			os.Args = strings.Fields(cmd)
-			flag.Parse()
+			os.Args = strings.Fields(line)
+			inst.ParseFlags()
 		}
 	}
 
-	inst := Installer{
-		Status:  *status,
-		Remove:  *remove,
-		Install: *install,
-		Verbose: *verbose,
-		Tasks:   []genesis.Doer{},
-	}
-
-	if !(*install || *remove || *status) {
+	if inst.Cmd != "install" && inst.Cmd != "remove" && inst.Cmd != "status" {
 		return &inst
 	}
 
-	SkipTags = strings.Split(*skipTags, ",")
-	if len(*dotags) == 0 {
+	SkipTags = strings.Split(inst.SkipTags, ",")
+	if len(inst.DoTags) == 0 {
 		DoTags = []string{}
 	} else {
-		DoTags = strings.Split(*dotags, ",")
+		DoTags = strings.Split(inst.DoTags, ",")
 	}
 
-	inst.Store = store.New(*storedir)
+	inst.Store = store.New(inst.Dir)
 	if inst.Store == nil {
-		return nil
+		fmt.Println("Cannot access store directory.")
+		os.Exit(1)
 	}
 
-	if inst.Install || inst.Remove {
-		err := SaveHistory(*storedir, os.Args)
+	if inst.Cmd == "install" || inst.Cmd == "remove" {
+		err := SaveHistory(inst.Dir, os.Args)
 		if err != nil {
 			fmt.Println("Error saving command history:", err)
 		}
 	}
 
 	inst.Facts = genesis.GatherFacts()
-	inst.extractFiles(*tmpdir)
+	inst.extractFiles(inst.Tmpdir)
 
 	return &inst
 
@@ -157,20 +218,20 @@ func (inst *Installer) extractFiles(tmpdir string) error {
 // Done finishes up the installer process.
 func (inst *Installer) Done() {
 
-	switch {
+	switch inst.Cmd {
 
-	case inst.Remove:
+	case "remove":
 		for k := len(inst.Tasks) - 1; k >= 0; k-- {
 			task := inst.Tasks[k]
 			task.Undo()
 		}
 
-	case inst.Install:
+	case "install":
 		for _, task := range inst.Tasks {
 			task.Do()
 		}
 
-	case inst.Status:
+	case "status":
 		for _, task := range inst.Tasks {
 			task.Status()
 		}

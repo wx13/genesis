@@ -12,12 +12,6 @@ other tasks/groups/sections. You can tell it to re-run certain steps or
 sections, and/or to skip some.
 
 
-Status
-------
-
-This is experimental software, with high API instability. However, I am
-currently using it in my own work.
-
 
 Motivation
 ----------
