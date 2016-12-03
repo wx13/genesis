@@ -5,6 +5,7 @@ package installer
 
 import (
 	"archive/zip"
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -21,6 +22,9 @@ import (
 	"github.com/wx13/genesis/store"
 )
 
+// DoTags and SkipTags are global variables, because
+// we need to modify them as we descend into sections
+// and unmodify them on the way back up.
 var DoTags, SkipTags []string
 
 // Installer is a wrapper around modules to provide a nice
@@ -29,14 +33,16 @@ type Installer struct {
 	Cmd      string
 	Verbose  bool
 	Facts    genesis.Facts
-	Dir      string
 	Store    *store.Store
 	Tasks    []genesis.Doer
 	Tmpdir   string
+	Dir      string
+	Gendir   string
 	DoTags   string
 	SkipTags string
 }
 
+// ParseFlags does all the flag parsing for the installer.
 func (inst *Installer) ParseFlags() {
 
 	// Grab the executable name for usage printout.
@@ -48,7 +54,7 @@ func (inst *Installer) ParseFlags() {
 		fmt.Println("Usage:")
 		fmt.Println("")
 		fmt.Printf("  %s -h\n", execName)
-		fmt.Printf("  %s (status|install|remove) [-verbose] [-tmpdir] [-storedir] [-tags] [-skip-tags]\n", execName)
+		fmt.Printf("  %s (status|install|remove) [-verbose] [-tmpdir] [-dir] [-tags] [-skip-tags]\n", execName)
 		fmt.Printf("  %s build [dir...]\n", execName)
 		fmt.Printf("  %s rerun\n", execName)
 		fmt.Println("")
@@ -68,8 +74,8 @@ func (inst *Installer) ParseFlags() {
 	// Options for the "run" commands: install, remove, status.
 	runFlag := flag.NewFlagSet("run", flag.ExitOnError)
 	verbose := runFlag.Bool("verbose", false, "Verbose")
-	tmpdir := runFlag.String("tempdir", "", "Temp directory; empty string == default location")
-	storedir := runFlag.String("store", "", "Storage directory for snapshots. Defaults to user's home directory.")
+	tmpdir := runFlag.String("tmpdir", "", "Temp directory for unpacked files; empty string == default location")
+	dir := runFlag.String("dir", "~/.genesis", "Storage directory for data. Defaults to ~/.genesis")
 	doTags := runFlag.String("tags", "", "Specify comma-separated tags to run.  Defaults to all.")
 	skipTags := runFlag.String("skip-tags", "", "Specify comma-separated tags to skip.  Defaults to none.")
 	runFlag.Usage = func() {
@@ -85,6 +91,13 @@ func (inst *Installer) ParseFlags() {
 	}
 
 	buildFlag := flag.NewFlagSet("build", flag.ExitOnError)
+	buildFlag.Usage = func() {
+		fmt.Println("")
+		fmt.Println("Usage:")
+		fmt.Println("")
+		fmt.Printf("  %s build [list of directories]\n", execName)
+		fmt.Println("")
+	}
 	rerunFlag := flag.NewFlagSet("rerun", flag.ExitOnError)
 
 	// Print help screen if no arguments are given.
@@ -111,10 +124,11 @@ func (inst *Installer) ParseFlags() {
 
 	inst.Cmd = cmd
 	inst.Verbose = *verbose
-	inst.Dir = *storedir
-	inst.Tmpdir = *tmpdir
 	inst.DoTags = *doTags
 	inst.SkipTags = *skipTags
+
+	inst.Tmpdir, _ = ioutil.TempDir(*tmpdir, "genesis")
+	inst.Dir = genesis.ExpandHome(*dir)
 
 }
 
@@ -135,6 +149,10 @@ func New() *Installer {
 		}
 	}
 
+	if inst.Cmd == "build" {
+		return &inst
+	}
+
 	if inst.Cmd != "install" && inst.Cmd != "remove" && inst.Cmd != "status" {
 		return &inst
 	}
@@ -146,9 +164,10 @@ func New() *Installer {
 		DoTags = strings.Split(inst.DoTags, ",")
 	}
 
-	inst.Store = store.New(inst.Dir)
-	if inst.Store == nil {
-		fmt.Println("Cannot access store directory.")
+	var err error
+	inst.Store, err = store.New(inst.Dir)
+	if err != nil {
+		fmt.Println("Cannot access store directory.", err)
 		os.Exit(1)
 	}
 
@@ -160,19 +179,13 @@ func New() *Installer {
 	}
 
 	inst.Facts = genesis.GatherFacts()
-	inst.extractFiles(inst.Tmpdir)
+	inst.extractFiles()
 
 	return &inst
 
 }
 
-func (inst *Installer) extractFiles(tmpdir string) error {
-
-	dir, err := ioutil.TempDir(tmpdir, "installer")
-	if err != nil {
-		return err
-	}
-	inst.Dir = dir
+func (inst *Installer) extractFiles() error {
 
 	filename, _ := osext.Executable()
 
@@ -182,7 +195,7 @@ func (inst *Installer) extractFiles(tmpdir string) error {
 		return err
 	}
 	for _, file := range zipRdr.File {
-		dest := path.Join(inst.Dir, file.Name)
+		dest := path.Join(inst.Tmpdir, file.Name)
 		if file.FileInfo().IsDir() {
 			os.MkdirAll(dest, file.FileInfo().Mode().Perm())
 			continue
@@ -236,6 +249,10 @@ func (inst *Installer) Done() {
 			task.Status()
 		}
 
+	case "build":
+		inst.Build(os.Args[2:])
+		return
+
 	}
 
 	ReportSummary()
@@ -246,7 +263,7 @@ func (inst *Installer) Done() {
 // CleanUp removes the temporary directory.
 func (inst *Installer) CleanUp() {
 	fmt.Println("")
-	os.RemoveAll(inst.Dir)
+	os.RemoveAll(inst.Tmpdir)
 }
 
 func SkipID(id string) string {
@@ -284,6 +301,81 @@ func (inst *Installer) AddTask(module genesis.Module) {
 
 func (inst *Installer) Add(task genesis.Doer) {
 	inst.Tasks = append(inst.Tasks, task)
+}
+
+func (inst *Installer) Files() []string {
+	files := []string{}
+	for _, task := range inst.Tasks {
+		files = append(files, task.Files()...)
+	}
+	return files
+}
+
+func (inst *Installer) Build(dirs []string) {
+
+	fmt.Println("Building the self-contained executable...")
+
+	// Create list of files to archive.
+	files := []string{}
+	for _, file := range inst.Files() {
+		if strings.HasPrefix(file, inst.Tmpdir) {
+			p, err := filepath.Rel(inst.Tmpdir, file)
+			if err == nil {
+				files = append(files, p)
+			}
+		}
+	}
+
+	execname, _ := osext.Executable()
+	execbody, err := ioutil.ReadFile(execname)
+	if err != nil {
+		fmt.Println("Cannot read executable (self):", execname, err)
+		return
+	}
+
+	// Create a buffer to write our archive to.
+	buf := new(bytes.Buffer)
+
+	// Create a new zip archive.
+	w := zip.NewWriter(buf)
+	w.SetOffset(int64(len(execbody)))
+
+	// Add files to the archive.
+	fmt.Println("Adding files to archive:")
+	for _, file := range files {
+		fmt.Println("   ", file)
+		f, err := w.Create(file)
+		if err != nil {
+			fmt.Println("Cannot add file to archive:", file, err)
+			continue
+		}
+		body, err := ioutil.ReadFile(file)
+		if err != nil {
+			fmt.Println("Cannot read file:", file, err)
+			continue
+		}
+		_, err = f.Write(body)
+		if err != nil {
+			fmt.Println("Cannot write file contents to archive:", file, err)
+			continue
+		}
+	}
+
+	err = w.Close()
+	if err != nil {
+		fmt.Println("Cannot close archive:", err)
+	}
+
+	execbody = append(execbody, buf.Bytes()...)
+
+	err = ioutil.WriteFile(execname+".x", execbody, 0755)
+	if err != nil {
+		fmt.Println("Error writing to zip file:", err)
+		return
+	}
+
+	fmt.Println("Done building archive.")
+
 }
 
 func getHistoryFile(dir string) (string, string) {

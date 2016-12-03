@@ -23,6 +23,10 @@ func (sk Skeleton) ID() string {
 	return sk.Describe()
 }
 
+func (sk Skeleton) Files() []string {
+	return []string{}
+}
+
 // Install performs an action, and reports on its success.
 func (sk Skeleton) Install() (string, error) {
 	return "Skeleton did nothing.", nil

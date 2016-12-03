@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path"
 	"strings"
 )
@@ -19,18 +18,13 @@ type Store struct {
 }
 
 // New generates a new Store object.
-func New(dir string) *Store {
-	store := Store{}
-	if len(dir) == 0 {
-		usr, _ := user.Current()
-		dir = usr.HomeDir
-	}
-	store.Dir = path.Join(dir, ".genesis/store")
+func New(dir string) (*Store, error) {
+	store := Store{Dir: dir}
 	err := os.MkdirAll(store.Dir, 0755)
 	if err != nil {
-		return nil
+		return &store, err
 	}
-	return &store
+	return &store, nil
 }
 
 func (store *Store) createPath(filename, label string) string {

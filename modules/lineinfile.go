@@ -31,6 +31,10 @@ func (lif LineInFile) ID() string {
 	return "lineInFile" + lif.File + lif.Pattern + lif.Line + lif.Label + lif.Before + lif.After
 }
 
+func (lif LineInFile) Files() []string {
+	return []string{lif.File}
+}
+
 func (lif LineInFile) readFile() ([]string, error) {
 	content, err := ioutil.ReadFile(lif.File)
 	if err != nil {

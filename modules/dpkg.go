@@ -31,6 +31,10 @@ func (dpkg Dpkg) ID() string {
 	return "Dpkg " + name
 }
 
+func (dpkg Dpkg) Files() []string {
+	return []string{dpkg.Path}
+}
+
 func (dpkg *Dpkg) packageName() (string, error) {
 	cmd := exec.Command("dpkg-deb", "-W", "--showformat", "${Package}", dpkg.Path)
 	output, err := cmd.CombinedOutput()

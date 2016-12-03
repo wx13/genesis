@@ -29,6 +29,10 @@ func (cmd Command) ID() string {
 	return "command" + cmd.Cmd + strings.Join(cmd.Opts, "")
 }
 
+func (cmd Command) Files() []string {
+	return []string{}
+}
+
 func (cmd Command) Status() (genesis.Status, string, error) {
 	if len(cmd.PSPattern) == 0 {
 		return genesis.StatusUnknown, "Cannot discern whether a command has been run or not.", nil

@@ -24,6 +24,10 @@ func (apt Apt) ID() string {
 	return apt.Describe()
 }
 
+func (apt Apt) Files() []string {
+	return []string{}
+}
+
 func (apt Apt) Install() (string, error) {
 	var cmd *exec.Cmd
 	if apt.Absent {

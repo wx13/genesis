@@ -23,6 +23,10 @@ func (cpf CopyFile) ID() string {
 	return "copyFile" + cpf.Dest
 }
 
+func (cpf CopyFile) Files() []string {
+	return []string{cpf.Src}
+}
+
 func (cpf CopyFile) Remove() (string, error) {
 
 	cpf.Dest = genesis.ExpandHome(cpf.Dest)

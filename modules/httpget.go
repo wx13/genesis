@@ -26,6 +26,10 @@ func (get HttpGet) ID() string {
 	return get.Describe()
 }
 
+func (get HttpGet) Files() []string {
+	return []string{}
+}
+
 func (get HttpGet) Remove() (string, error) {
 
 	get.Dest = genesis.ExpandHome(get.Dest)

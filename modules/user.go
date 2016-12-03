@@ -20,6 +20,10 @@ func (u User) ID() string {
 	return "User" + u.Name
 }
 
+func (u User) Files() []string {
+	return []string{}
+}
+
 func (u User) Status() (genesis.Status, string, error) {
 	_, err := user.Lookup(u.Name)
 	if err != nil {

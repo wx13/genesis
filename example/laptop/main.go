@@ -41,7 +41,7 @@ func dotfiles() {
 
 	sect.AddTask(modules.CopyFile{
 		Dest:  "~/.mybashrc",
-		Src:   path.Join(inst.Dir, "files/mybashrc"),
+		Src:   path.Join(inst.Tmpdir, "files/mybashrc"),
 		Store: inst.Store,
 	})
 
@@ -53,13 +53,13 @@ func dotfiles() {
 
 	sect.AddTask(modules.CopyFile{
 		Dest:  "~/.gitconfig",
-		Src:   path.Join(inst.Dir, "files/gitconfig"),
+		Src:   path.Join(inst.Tmpdir, "files/gitconfig"),
 		Store: inst.Store,
 	})
 
 	sect.AddTask(modules.CopyFile{
 		Dest:  "~/.screenrc",
-		Src:   path.Join(inst.Dir, "files/screenrc"),
+		Src:   path.Join(inst.Tmpdir, "files/screenrc"),
 		Store: inst.Store,
 	})
 
@@ -71,7 +71,7 @@ func sshConfig() {
 	defer inst.Add(sect)
 
 	// Ensure SSH directory exists, but don't remove it.
-	if !inst.Remove {
+	if inst.Cmd != "remove" {
 		sect.AddTask(modules.Mkdir{Path: "~/.ssh"})
 	}
 

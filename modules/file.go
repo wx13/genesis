@@ -26,6 +26,10 @@ func (file File) ID() string {
 	return fmt.Sprintf("file %+v", file)
 }
 
+func (file File) Files() []string {
+	return []string{file.Path}
+}
+
 type fileStat struct {
 	path string
 	info os.FileInfo

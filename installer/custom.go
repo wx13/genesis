@@ -12,6 +12,7 @@ type Custom struct {
 	D    func() (bool, error)
 	U    func() (bool, error)
 	I    func() string
+	F    func() []string
 }
 
 func NewCustom(task genesis.Doer) *Custom {
@@ -21,6 +22,7 @@ func NewCustom(task genesis.Doer) *Custom {
 		D:    task.Do,
 		U:    task.Undo,
 		I:    task.ID,
+		F:    task.Files,
 	}
 	return &custom
 }
@@ -39,4 +41,8 @@ func (custom Custom) Undo() (bool, error) {
 
 func (custom Custom) ID() string {
 	return custom.I()
+}
+
+func (custom Custom) Files() []string {
+	return custom.F()
 }

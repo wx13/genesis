@@ -11,6 +11,10 @@ type Task struct {
 	genesis.Module
 }
 
+func (task Task) Files() []string {
+	return task.Module.Files()
+}
+
 func (task Task) Status() (genesis.Status, error) {
 	id := task.Module.ID()
 	if SkipID(id) != "do" {

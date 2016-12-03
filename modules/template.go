@@ -27,6 +27,10 @@ func (tmpl Template) ID() string {
 	return "template" + tmpl.DestFile
 }
 
+func (tmpl Template) Files() []string {
+	return []string{tmpl.TemplateFile}
+}
+
 func (tmpl Template) Remove() (string, error) {
 	err := tmpl.Store.RestoreFile(tmpl.DestFile, "")
 	if err == nil {

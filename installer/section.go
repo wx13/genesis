@@ -26,6 +26,14 @@ func NewSection(name string) *Section {
 	}
 }
 
+func (section Section) Files() []string {
+	files := []string{}
+	for _, task := range section.Tasks {
+		files = append(files, task.Files()...)
+	}
+	return files
+}
+
 func (section Section) ID() string {
 	id := ""
 	if section.Name == "" {

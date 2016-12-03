@@ -21,6 +21,10 @@ func (initd Initd) ID() string {
 	return "initd" + initd.Name
 }
 
+func (initd Initd) Files() []string {
+	return []string{}
+}
+
 func (initd Initd) Status() (genesis.Status, string, error) {
 	out, err := exec.Command("service", initd.Name, "status").CombinedOutput()
 	if err != nil {

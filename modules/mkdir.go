@@ -22,6 +22,10 @@ func (mkdir Mkdir) ID() string {
 	return mkdir.Describe()
 }
 
+func (mkdir Mkdir) Files() []string {
+	return []string{}
+}
+
 func (mkdir Mkdir) isExist() bool {
 	_, err := os.Stat(mkdir.Path)
 	if err == nil {

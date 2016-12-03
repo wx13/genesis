@@ -70,6 +70,7 @@ type Module interface {
 	Status() (Status, string, error)
 	Describe() string
 	ID() string
+	Files() []string
 }
 
 // Doer can do and undo things.
@@ -78,6 +79,7 @@ type Doer interface {
 	Undo() (bool, error)
 	Status() (Status, error)
 	ID() string
+	Files() []string
 }
 
 func DoerHash(doer Doer) string {

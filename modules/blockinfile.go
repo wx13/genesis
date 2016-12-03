@@ -28,6 +28,10 @@ func (bif BlockInFile) ID() string {
 	return "blockInFile" + bif.File + strings.Join(bif.Patterns, "") + strings.Join(bif.Lines, "") + bif.Label
 }
 
+func (bif BlockInFile) Files() []string {
+	return []string{bif.File}
+}
+
 func (bif BlockInFile) readFile() ([]string, error) {
 	content, err := ioutil.ReadFile(bif.File)
 	if err != nil {

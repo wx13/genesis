@@ -15,6 +15,10 @@ func (ifthen IfThen) ID() string {
 	return ifthen.If.ID() + ifthen.Then.ID()
 }
 
+func (ifthen IfThen) Files() []string {
+	return append(ifthen.If.Files(), ifthen.Then.Files()...)
+}
+
 func (ifthen IfThen) Status() (genesis.Status, error) {
 	skip := SkipID(ifthen.ID())
 	if skip == "skip" {
