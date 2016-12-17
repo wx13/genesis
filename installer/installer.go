@@ -5,7 +5,6 @@ package installer
 
 import (
 	"archive/zip"
-	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -309,73 +308,6 @@ func (inst *Installer) Files() []string {
 		files = append(files, task.Files()...)
 	}
 	return files
-}
-
-func (inst *Installer) Build(dirs []string) {
-
-	fmt.Println("Building the self-contained executable...")
-
-	// Create list of files to archive.
-	files := []string{}
-	for _, file := range inst.Files() {
-		if strings.HasPrefix(file, inst.Tmpdir) {
-			p, err := filepath.Rel(inst.Tmpdir, file)
-			if err == nil {
-				files = append(files, p)
-			}
-		}
-	}
-
-	execname, _ := osext.Executable()
-	execbody, err := ioutil.ReadFile(execname)
-	if err != nil {
-		fmt.Println("Cannot read executable (self):", execname, err)
-		return
-	}
-
-	// Create a buffer to write our archive to.
-	buf := new(bytes.Buffer)
-
-	// Create a new zip archive.
-	w := zip.NewWriter(buf)
-	w.SetOffset(int64(len(execbody)))
-
-	// Add files to the archive.
-	fmt.Println("Adding files to archive:")
-	for _, file := range files {
-		fmt.Println("   ", file)
-		f, err := w.Create(file)
-		if err != nil {
-			fmt.Println("Cannot add file to archive:", file, err)
-			continue
-		}
-		body, err := ioutil.ReadFile(file)
-		if err != nil {
-			fmt.Println("Cannot read file:", file, err)
-			continue
-		}
-		_, err = f.Write(body)
-		if err != nil {
-			fmt.Println("Cannot write file contents to archive:", file, err)
-			continue
-		}
-	}
-
-	err = w.Close()
-	if err != nil {
-		fmt.Println("Cannot close archive:", err)
-	}
-
-	execbody = append(execbody, buf.Bytes()...)
-
-	err = ioutil.WriteFile(execname+".x", execbody, 0755)
-	if err != nil {
-		fmt.Println("Error writing to zip file:", err)
-		return
-	}
-
-	fmt.Println("Done building archive.")
-
 }
 
 func getHistoryFile(dir string) (string, string) {
