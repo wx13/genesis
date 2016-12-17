@@ -12,6 +12,9 @@ type Task struct {
 }
 
 func (task Task) Files() []string {
+	if task.Module == nil {
+		return []string{}
+	}
 	return task.Module.Files()
 }
 
