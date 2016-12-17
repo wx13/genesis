@@ -13,9 +13,7 @@ use the Genesis installer.
 Building an installer is as simple as:
 
 1. Compile the code like usual, with e.g. `GOOS=linux GOARCH=arm go build`.
-2. Zip up supporting files, with e.g. `zip -r files.zip files/`.
-3. Append the zip file to the binary: `cat files.zip >> my_installer`.
-4. Fix the zip file indexing: `zip -A my_installer`.
+2. Build the installer with `./installer build`.
 
 ### Programming an installer
 
@@ -50,7 +48,7 @@ it installs the listed packages.  On `remove` it removes the packages. And on
 
 Once you have build an installer, it behaves like any ordinary executable.
 Run it with `-h` to see all the options.  Most of the time, you just use
-`-install`, `-status`, or `-remove`.  Other options are covered later in
+`install`, `status`, or `remove`.  Other options are covered later in
 this manual.
 
 
