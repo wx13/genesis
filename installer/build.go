@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -45,7 +46,7 @@ func (inst *Installer) Build(dirs []string) {
 	buf := new(bytes.Buffer)
 	w := zip.NewWriter(buf)
 	w.SetOffset(int64(len(execbody)))
-	addFilesToArchive(w, files)
+	addFilesToArchive(w, files, dirs)
 
 	// Append zip to executable.
 	execbody = append(execbody, buf.Bytes()...)
@@ -61,7 +62,7 @@ func (inst *Installer) Build(dirs []string) {
 
 }
 
-func addFilesToArchive(w *zip.Writer, files []string) {
+func addFilesToArchive(w *zip.Writer, files, dirs []string) {
 
 	fmt.Println("Adding files to archive:")
 	for _, file := range files {
@@ -72,9 +73,9 @@ func addFilesToArchive(w *zip.Writer, files []string) {
 			fmt.Println("Cannot add file to archive:", file, err)
 			continue
 		}
-		body, err := ioutil.ReadFile(file)
+		body, err := readFile(file, dirs)
 		if err != nil {
-			fmt.Println("Cannot read file:", file, err)
+			fmt.Printf("Could not read file %s in directories %+v, because of %+v\n", file, dirs, err)
 			continue
 		}
 		_, err = f.Write(body)
@@ -89,4 +90,20 @@ func addFilesToArchive(w *zip.Writer, files []string) {
 		fmt.Println("Cannot close archive:", err)
 	}
 
+}
+
+func readFile(file string, dirs []string) ([]byte, error) {
+	var err error
+	var body []byte
+	if len(dirs) == 0 {
+		dirs = []string{""}
+	}
+	for _, dir := range dirs {
+		filename := path.Join(dir, file)
+		body, err = ioutil.ReadFile(filename)
+		if err == nil {
+			return body, nil
+		}
+	}
+	return body, err
 }
