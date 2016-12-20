@@ -5,6 +5,7 @@ package installer
 
 import (
 	"archive/zip"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -28,16 +29,17 @@ var DoTags, SkipTags []string
 // Installer is a wrapper around modules to provide a nice
 // interface for building an installer.
 type Installer struct {
-	Cmd      string
-	Verbose  bool
-	Facts    genesis.Facts
-	Store    *store.Store
-	Tasks    []genesis.Doer
-	Tmpdir   string
-	Dir      string
-	Gendir   string
-	DoTags   string
-	SkipTags string
+	Cmd       string
+	Verbose   bool
+	Facts     genesis.Facts
+	Store     *store.Store
+	Tasks     []genesis.Doer
+	Tmpdir    string
+	Dir       string
+	Gendir    string
+	DoTags    string
+	SkipTags  string
+	UserFlags *flag.FlagSet
 }
 
 // New creates a new installer object.
@@ -45,6 +47,13 @@ func New() *Installer {
 
 	inst := Installer{}
 	inst.Tasks = []genesis.Doer{}
+	inst.UserFlags = flag.NewFlagSet("user", flag.ExitOnError)
+	return &inst
+
+}
+
+func (inst *Installer) Init() *Installer {
+
 	inst.ParseFlags()
 
 	// If "rerun" is specified, use the command history to
@@ -58,11 +67,11 @@ func New() *Installer {
 	}
 
 	if inst.Cmd == "build" {
-		return &inst
+		return inst
 	}
 
 	if inst.Cmd != "install" && inst.Cmd != "remove" && inst.Cmd != "status" {
-		return &inst
+		return inst
 	}
 
 	SkipTags = strings.Split(inst.SkipTags, ",")
@@ -89,7 +98,7 @@ func New() *Installer {
 	inst.Facts = genesis.GatherFacts()
 	inst.extractFiles()
 
-	return &inst
+	return inst
 
 }
 

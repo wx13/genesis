@@ -59,6 +59,10 @@ func (inst *Installer) ParseFlags() {
 		fmt.Println("")
 		runFlag.PrintDefaults()
 		fmt.Println("")
+		fmt.Println("User options:")
+		fmt.Println("")
+		inst.UserFlags.PrintDefaults()
+		fmt.Println("")
 	}
 
 	buildFlag := flag.NewFlagSet("build", flag.ExitOnError)
@@ -84,6 +88,7 @@ func (inst *Installer) ParseFlags() {
 	switch cmd {
 	case "install", "remove", "status":
 		runFlag.Parse(os.Args[2:])
+		inst.UserFlags.Parse(os.Args[2:])
 	case "build":
 		buildFlag.Parse(os.Args[2:])
 	case "rerun":
