@@ -122,7 +122,7 @@ func raspbianSetup() {
 
 func main() {
 
-	inst = installer.New()
+	inst = installer.New().Init()
 	if inst == nil {
 		panic("Unable to create an installer.")
 	}
