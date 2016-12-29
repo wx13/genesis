@@ -40,6 +40,8 @@ type Installer struct {
 	DoTags    string
 	SkipTags  string
 	UserFlags *flag.FlagSet
+	ExecName  string
+	BuildDirs []string
 }
 
 // New creates a new installer object.
@@ -167,7 +169,7 @@ func (inst *Installer) Done() {
 		}
 
 	case "build":
-		inst.Build(os.Args[2:])
+		inst.Build()
 		return
 
 	}

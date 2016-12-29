@@ -26,7 +26,7 @@ func (inst *Installer) ParseFlags() {
 		fmt.Println("")
 		fmt.Printf("  %s -h\n", execName)
 		fmt.Printf("  %s (status|install|remove) [-verbose] [-tmpdir] [-dir] [-tags] [-skip-tags]\n", execName)
-		fmt.Printf("  %s build [dir...]\n", execName)
+		fmt.Printf("  %s build [-x file] [dir...]\n", execName)
 		fmt.Printf("  %s rerun\n", execName)
 		fmt.Println("")
 		fmt.Println("Commands:")
@@ -66,11 +66,18 @@ func (inst *Installer) ParseFlags() {
 	}
 
 	buildFlag := flag.NewFlagSet("build", flag.ExitOnError)
+	xName := buildFlag.String("x", "", "Specify the executable to append zip file to.  Useful for cross compiling.")
 	buildFlag.Usage = func() {
+		fmt.Println("")
+		fmt.Println("Builds the self-extracting file from the executable. Packages up")
+		fmt.Println("needed files (and only needed files) as a zip archive and appends")
+		fmt.Println("to binary executable.  Optionally specify:")
+		fmt.Println("  - the name of the binary (useful for cross compiling)")
+		fmt.Println("  - a list of directories to collect files from")
 		fmt.Println("")
 		fmt.Println("Usage:")
 		fmt.Println("")
-		fmt.Printf("  %s build [list of directories]\n", execName)
+		fmt.Printf("  %s build [-x file] [list of directories]\n", execName)
 		fmt.Println("")
 	}
 	rerunFlag := flag.NewFlagSet("rerun", flag.ExitOnError)
@@ -91,6 +98,7 @@ func (inst *Installer) ParseFlags() {
 		inst.UserFlags.Parse(os.Args[2:])
 	case "build":
 		buildFlag.Parse(os.Args[2:])
+		inst.BuildDirs = buildFlag.Args()
 	case "rerun":
 		rerunFlag.Parse(os.Args[2:])
 	default:
@@ -102,6 +110,7 @@ func (inst *Installer) ParseFlags() {
 	inst.Verbose = *verbose
 	inst.DoTags = *doTags
 	inst.SkipTags = *skipTags
+	inst.ExecName = *xName
 
 	inst.Tmpdir, _ = ioutil.TempDir(*tmpdir, "genesis")
 	inst.Dir = genesis.ExpandHome(*dir)

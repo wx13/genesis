@@ -25,22 +25,26 @@ func getFilesToArchive(allFiles []string, tmpdir string) []string {
 	return files
 }
 
-func getExec() (string, []byte) {
-	execname, _ := osext.Executable()
+func readExec(execname string) []byte {
 	execbody, err := ioutil.ReadFile(execname)
 	if err != nil {
 		fmt.Println("Error: cannot read executable (self):", execname, err)
 	}
-	return execname, execbody
+	return execbody
 }
 
-func (inst *Installer) Build(dirs []string) {
+func (inst *Installer) Build() {
 
 	fmt.Println("Building the self-contained executable...")
 
+	dirs := inst.BuildDirs
 	files := getFilesToArchive(inst.Files(), inst.Tmpdir)
 
-	execname, execbody := getExec()
+	execname := inst.ExecName
+	if len(execname) == 0 {
+		execname, _ = osext.Executable()
+	}
+	execbody := readExec(execname)
 
 	// Create the zip archive.
 	buf := new(bytes.Buffer)
