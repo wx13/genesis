@@ -65,18 +65,59 @@ See the `example` directory for more examples.
 Build
 -----
 
-To build the installer, first zip up the supporting files:
+There are two ways to build the installer: manually or with genesis's
+assistance.  Both begin by building the exectable with:
+
+    go build [FILE]
+
+or
+
+    GOOS=linux GOARCH=arm go build [FILE]
+
+if you are cross compiling.
+
+
+### Manual build
+
+The installer extracts zip data from the end of itself. So you can
+create the full installer by appending the zip data.
 
     zip -r files.zip files
+    cat files.zip >> installer
+    zip -A installer
 
-Now build the executable and append the zip file:
+The last command fixes the zip file indexing to account for the executable
+prepended to the zip data.
 
-    go build my_installer.go
-    cat files.zip >> my_installer
-    zip -A my_installer
 
-This packages the zip file into the installer binary, so that it is
-completely standalone. Run the binary with the `-install`, `-status`, or
-`-remove` flags to install / check status / remove.
+### Automated build
 
+There are a couple of issues with building manually.  First off, you must
+make sure you zip up all the correct files with correct relative paths.
+If you have different versions of your installer (e.g. installer versus updater),
+you have to manually manage which files to zip for each.  Finally, you have to
+remember to correct the zip file index or else your installer will fail.
+
+Thankfully, genesis has a solution to this.  To build the self-extracting installer
+from a binary, just run:
+
+    ./installer build [list of dirs]
+
+This will figure out which files are needed, look for them in the current directory,
+and create a self-contained installer at 'installer.x'.  You can optionally specify
+a list of directories to look for files in (instead of the current directory).
+
+This will fail for cross-compiled binaries, because you won't be able to execute
+the binary on the build system.  Instead run:
+
+    go run installer.go -x installer build [list of dirs]
+
+
+Running the installer
+---------------------
+
+To run the installer, place it on the target system and execute it with
+one of the standard commands: "status", "install", or "remove".  Use the "-h"
+flag to see the help screen.  Each of the above commands has its own help screen
+as well.
 
