@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -103,7 +102,7 @@ func readFile(file string, dirs []string) ([]byte, error) {
 		dirs = []string{""}
 	}
 	for _, dir := range dirs {
-		filename := path.Join(dir, file)
+		filename := filepath.Join(dir, file)
 		body, err = ioutil.ReadFile(filename)
 		if err == nil {
 			return body, nil

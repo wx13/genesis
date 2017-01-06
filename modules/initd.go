@@ -3,7 +3,7 @@ package modules
 import (
 	"fmt"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/wx13/genesis"
@@ -54,7 +54,7 @@ func (initd Initd) Remove() (string, error) {
 }
 
 func (initd Initd) Install() (string, error) {
-	file := path.Join("/etc/init.d", initd.Name)
+	file := filepath.Join("/etc/init.d", initd.Name)
 	out, err := exec.Command("chmod", "+x", file).CombinedOutput()
 	if err != nil {
 		return "Unable to set init.d script to executable. " + string(out), err

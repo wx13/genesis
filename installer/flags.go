@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/wx13/genesis"
 )
@@ -17,7 +17,7 @@ import (
 func (inst *Installer) ParseFlags() {
 
 	// Grab the executable name for usage printout.
-	execName := path.Base(os.Args[0])
+	execName := filepath.Base(os.Args[0])
 
 	// Main help screen.
 	flag.Usage = func() {

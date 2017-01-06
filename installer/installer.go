@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/user"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -114,7 +113,7 @@ func (inst *Installer) extractFiles() error {
 		return err
 	}
 	for _, file := range zipRdr.File {
-		dest := path.Join(inst.Tmpdir, file.Name)
+		dest := filepath.Join(inst.Tmpdir, file.Name)
 		if file.FileInfo().IsDir() {
 			os.MkdirAll(dest, file.FileInfo().Mode().Perm())
 			continue
@@ -235,8 +234,8 @@ func getHistoryFile(dir string) (string, string) {
 		usr, _ := user.Current()
 		dir = usr.HomeDir
 	}
-	dir = path.Join(dir, ".genesis")
-	filename := path.Join(dir, "history.txt")
+	dir = filepath.Join(dir, ".genesis")
+	filename := filepath.Join(dir, "history.txt")
 	return dir, filename
 }
 

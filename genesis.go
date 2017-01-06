@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -122,5 +122,5 @@ func ExpandHome(name string) string {
 	if err != nil {
 		return name
 	}
-	return path.Join(user.HomeDir, name[1:])
+	return filepath.Join(user.HomeDir, name[1:])
 }
