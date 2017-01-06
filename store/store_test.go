@@ -19,9 +19,9 @@ func TestStore(t *testing.T) {
 
 	storeDir := path.Join(dir, "store")
 	os.Mkdir(storeDir, 0755)
-	s := store.New(storeDir)
-	if s == nil {
-		t.Error("Could not create store")
+	s, err := store.New(storeDir)
+	if err != nil {
+		t.Error("Could not create store:", err)
 	}
 
 	filename := path.Join(dir, "myfile.txt")
