@@ -62,9 +62,15 @@ func TestStore(t *testing.T) {
 
 	// Modify the file to test patching.
 	text2 := "This is line 27,\nand this is line owt.\n3\nNow line four.\n"
-	s.SavePatch(filename, text, text2, "foo")
+	err = s.SavePatch(filename, text, text2, "foo")
+	if err != nil {
+		t.Error("Error saving file patch.", err)
+	}
 	ioutil.WriteFile(filename, []byte(text2), 0644)
-	s.ApplyPatch(filename, "foo")
+	err = s.ApplyPatch(filename, "foo")
+	if err != nil {
+		t.Error("Error patching file.", err)
+	}
 	data, err = ioutil.ReadFile(filename)
 	if string(data) != text {
 		t.Error("Patched file is not equal to original file.")

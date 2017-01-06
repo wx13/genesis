@@ -23,7 +23,7 @@ func (store *Store) ApplyPatch(filename, label string) error {
 	fileStr := string(b)
 
 	// Read patch file.
-	patchFile := filepath.Join(store.Dir, filename+"."+label)
+	patchFile := store.createPath(filename, label)
 	b, err = ioutil.ReadFile(patchFile)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (store *Store) SavePatch(filename, origStr, newStr, label string) error {
 	strPatch := dmp.PatchToText(patches)
 
 	// Create the destination directory.
-	dest := filepath.Join(store.Dir, filename+"."+label)
+	dest := store.createPath(filename, label)
 	dir := filepath.Dir(dest)
 	err := os.MkdirAll(dir, 0755)
 	if err != nil {
