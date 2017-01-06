@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	inst := installer.New()
+	inst := installer.New().Init()
 	defer inst.Done()
 
 	inst.AddTask(modules.Mkdir{Path: "/tmp/genesis_example"})
