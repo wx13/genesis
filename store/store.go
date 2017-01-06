@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -31,7 +31,8 @@ func (store *Store) createPath(filename, label string) string {
 	if len(label) > 0 {
 		label = "." + label
 	}
-	return path.Join(store.Dir, filename+label)
+	filename = strings.Replace(filename, ":", "", 1)
+	return filepath.Join(store.Dir, filename+label)
 }
 
 // Hash computes a hash of a set of strings.

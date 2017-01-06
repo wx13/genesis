@@ -3,7 +3,7 @@ package store
 import (
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 )
 
 // RestoreFile restores a file from backup.
@@ -49,7 +49,7 @@ func (store *Store) SaveFile(filename, label string) error {
 	dest := store.createPath(filename, label)
 
 	// Create the destination directory.
-	dir := path.Dir(dest)
+	dir := filepath.Dir(dest)
 	err = os.MkdirAll(dir, 0755)
 	if err != nil {
 		return err

@@ -3,7 +3,7 @@ package store_test
 import (
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/wx13/genesis/store"
@@ -28,12 +28,12 @@ func TestStore(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	// Generate a file for testing.
-	filename := path.Join(dir, "myfile.txt")
+	filename := filepath.Join(dir, "myfile.txt")
 	text := "This is line 1,\nand this is line two.\n\nNow line four.\n"
 	ioutil.WriteFile(filename, []byte(text), 0644)
 
 	// Create a new store.
-	storeDir := path.Join(dir, "store")
+	storeDir := filepath.Join(dir, "store")
 	os.Mkdir(storeDir, 0755)
 	s, err := store.New(storeDir)
 	if err != nil {
@@ -41,14 +41,23 @@ func TestStore(t *testing.T) {
 	}
 
 	// Save a snapshot, remove the file, and then restore it.
-	s.SaveFile(filename, "")
+	err = s.SaveFile(filename, "")
+	if err != nil {
+		t.Error("Could not save file to store.", err)
+	}
 	os.Remove(filename)
-	s.RestoreFile(filename, "")
+	err = s.RestoreFile(filename, "")
+	if err != nil {
+		t.Error("Could not restore file from store.", err)
+	}
 
 	// Test if restored file matches original.
 	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		t.Error("Cannot read file:", err)
+	}
 	if string(data) != text {
-		t.Error("Restored file is not equal to original file.")
+		t.Error("Restored file is not equal to original file.", err)
 	}
 
 	// Modify the file to test patching.
