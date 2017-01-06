@@ -49,6 +49,7 @@ func New() *Installer {
 	inst := Installer{}
 	inst.Tasks = []genesis.Doer{}
 	inst.UserFlags = flag.NewFlagSet("user", flag.ExitOnError)
+	inst.UserFlags.Usage = func() {}
 	return &inst
 
 }
