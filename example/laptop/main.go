@@ -33,6 +33,19 @@ func dotfiles() {
 		Store: inst.Store,
 	})
 
+	sect.AddTask(modules.Mkdir{Path: "~/.bash_functions"})
+	sect.AddTask(modules.Mkdir{Path: "~/.bash_scripts"})
+	sect.AddTask(modules.CopyFile{
+		Dest:  "~/.bash_functions/battery.sh",
+		Src:   path.Join(inst.Tmpdir, "files/bash_functions/battery.sh"),
+		Store: inst.Store,
+	})
+	sect.AddTask(modules.CopyFile{
+		Dest:  "~/.bash_scripts/battery.sh",
+		Src:   path.Join(inst.Tmpdir, "files/bash_scripts/battery.sh"),
+		Store: inst.Store,
+	})
+
 	sect.AddTask(modules.HttpGet{
 		Url:   "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh",
 		Dest:  "~/.git-prompt.sh",
