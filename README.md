@@ -1,36 +1,82 @@
-Genesis
-=======
+# Genesis: A tool for building installers
 
-Genesis is a Go library for building stand-alone installers. It is
-intended as a configuration management utility for embedded systems, but
-it can be used for pretty much any system.
+Genesis is a Go package for building self-contained, self-extracting
+installers. It is intended as a configuration management utility for
+offline systems and devices, but it can be used for pretty much any
+system.  Genesis can install, roll back, and report status.  You can
+construct groups of tasks and define conditional dependencies.
 
-Genesis can install, uninstall (reverse all installation steps), and
-report status. You can construct groups of tasks, define sections, and
-have tasks/groups/sections run conditionally based on the actions of
-other tasks/groups/sections. You can tell it to re-run certain steps or
-sections, and/or to skip some.
-
+Genesis is designed to configure a system from scratch. No initial setup
+is required. Go's ability to cross-compile static binaries makes it easy
+to generate installers for other platforms.
 
 
-Motivation
-----------
+## Motivation
 
-Traditional configuration management systems (chef, ansible, etc.) don't
-work well for embedded systems because they tend to assume:
+Most configuration management systems (chef, ansible, etc.) don't
+work well for devices because they make some assumptions that don't
+hold for these systems.  These assumptions are:
 
-- the target is accessible by network and the network has been configured
-- the target is running an ssh server
-- supporting software has been installed (python, chef client, etc).
+1. disposability
+2. preconfiguration
 
-Genesis is designed to configure a system *from scratch*. See the `doc`
-directory for more information.
+These assumptions hold true for cloud servers and virtual machines, which
+is the typical target of configuration management.  For hardware devices
+and similar, these assumptions often fail.
 
 
-Example
--------
+## Design Goals
 
-Here is a very simple example:
+Genesis is built with a few key design goals in mind.
+
+### 1. Minimize assumptions about the target system.
+
+Genesis tries to make as few assumptions about the target system as we can.
+This allows it to target more systems.  It also means less manual a priori setup.
+Here are some assumptions Genesis tries to avoid:
+
+- Network connectivity
+- Specific OS
+- Preinstalled software (python, ruby, bash, etc)
+- Availability of command line utilities (grep, awk, etc).
+
+### 2. Provide status information.
+
+A configuration management system should do more than configure a system.
+It should also describe the current status of the system and show how
+the system's current state differs from the desired state.  This allows
+the user to make informed decisions about what to do next, or how to modify
+the installer.
+
+### 3. Be able to roll back changes.
+
+The Genesis software should be able to undo changes it makes to the system.
+Obviously there are limits to this, and Genesis will never be perfect at this.
+However, it should make reasonable attempts to restore the system to its
+previous state.
+
+### 4. Able to be run by a non-expert.
+
+Hardware systems are often delivered to a customer, and the customer gains
+complete control of the system.  It is critical that non-expert users be
+able to update a system.
+
+
+## Usage
+
+Gensis consists of two parts: a set of modules, and an installer package.
+Each module performs a specific configuration task, such as: creating a directory,
+inserting a line in a file, or creating a user.  The official Genesis modules
+are contained in the `modules` directory.  However, a module can live anywhere.
+To create a custom module, it must only satisfy the `Module` interface.
+
+The second component is the installer.  The installer handles all the complicated
+stuff of figuring out which tasks should run, and storing information about previous
+states.
+
+### Creating an Installer
+
+Here is a very simple example showing how to build an installer.
 
     package main
 
@@ -61,9 +107,18 @@ which produces this:
 
 See the `example` directory for more examples.
 
+There are a few pieces here. First off, we import the installer package
+and the modules package, and create a new installer instance. Notice that
+we defer the `inst.Done()` command. Here's why: when we add tasks to the
+installer, those tasks don't get run right away. Which order they run in
+could depend on circumstances, so they get stored up by the installer.
+The `inst.Done()` command actually runs the installation.
 
-Build
------
+To add a task, we can simply run `AddTask` with its argument being a module instance.
+As you can see above, we can also create named sections, and add tasks to those sections.
+
+
+### Building an Installer
 
 There are two ways to build the installer: manually or with genesis's
 assistance.  Both begin by building the exectable with:
@@ -74,10 +129,10 @@ or
 
     GOOS=linux GOARCH=arm go build [FILE]
 
-if you are cross compiling.
+if you are cross-compiling.
 
 
-### Manual build
+#### Manual build
 
 The installer extracts zip data from the end of itself. So you can
 create the full installer by appending the zip data.
