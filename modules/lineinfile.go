@@ -1,7 +1,6 @@
 package modules
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"regexp"
@@ -11,28 +10,104 @@ import (
 	"github.com/wx13/genesis/store"
 )
 
+// LineInFile lets the user insert lines of text into a file.
 type LineInFile struct {
-	File    string
-	Pattern string
-	Success string
-	Line    string
-	Store   *store.Store
-	Label   string
-	Before  string
-	After   string
-	Absent  bool
-}
 
-func (lif LineInFile) Describe() string {
-	return fmt.Sprintf("LineInFile: %s, %s, %s", lif.File, lif.Pattern, lif.Line)
+	// Required
+	File string   // path to the file
+	Line []string // line(s) to insert
+
+	// Optional
+	Pattern []string     // line(s) to replace
+	Success []string     // pattern to check for success (defaults to Line)
+	Store   *store.Store // for storing changes
+	Before  []string     // insert line before this pattern
+	After   []string     // insert line after this pattern
+	Absent  bool         // ensure line is absent from file
+
 }
 
 func (lif LineInFile) ID() string {
-	return "lineInFile" + lif.File + lif.Pattern + lif.Line + lif.Label + lif.Before + lif.After
+	short := fmt.Sprintf("LineInFile: file=%s, line=%s, pattern=%s", lif.File, lif.Line, lif.Pattern)
+	long := fmt.Sprintf("before=%s, after=%s, success=%s absent=%s", lif.Before, lif.After, lif.Success, lif.Absent)
+	return short + "\n" + long
 }
 
 func (lif LineInFile) Files() []string {
 	return []string{lif.File}
+}
+
+func (lif LineInFile) Remove() (string, error) {
+	lif.File = genesis.ExpandHome(lif.File)
+	err := lif.Store.ApplyPatch(lif.File, lif.ID())
+	if err != nil {
+		return "Could not apply patch.", err
+	}
+	return "Patch applied", nil
+}
+
+func (lif LineInFile) Status() (genesis.Status, string, error) {
+
+	lif.File = genesis.ExpandHome(lif.File)
+
+	lines, err := lif.readFile()
+	if err != nil {
+		return genesis.StatusFail, "Could not read file.", err
+	}
+
+	_, lines, _ = lif.split(lines, lif.After, lif.Before)
+
+	present, _, _ := lif.find(lines)
+	if present {
+		if lif.Absent {
+			return genesis.StatusFail, "Line is in file.", nil
+		} else {
+			return genesis.StatusPass, "Line is in file.", nil
+		}
+	} else {
+		if lif.Absent {
+			return genesis.StatusPass, "Line is absent from file.", nil
+		} else {
+			return genesis.StatusFail, "Line is absent from file.", nil
+		}
+	}
+
+}
+
+func (lif LineInFile) Install() (string, error) {
+
+	lif.File = genesis.ExpandHome(lif.File)
+
+	lines, _ := lif.readFile()
+	origLines := strings.Join(lines, "\n")
+
+	beg, mid, end := lif.split(lines, lif.After, lif.Before)
+
+	mid = lif.replace(mid)
+	lines = append(beg, append(mid, end...)...)
+
+	err := lif.writeFile(lines)
+	if err != nil {
+		return "Unable to write file.", err
+	}
+
+	lif.Store.SavePatch(lif.File, origLines, strings.Join(lines, "\n"), lif.ID())
+
+	return "Wrote line to file", nil
+
+}
+
+// replace either replaces pattern line with line, or inserts
+// the line at the end.
+func (lif *LineInFile) replace(lines []string) []string {
+	present, start, stop := lif.find(lines)
+	if !present {
+		return append(lines, lif.Line...)
+	}
+	if stop == len(lines)-1 {
+		return append(lines[:start], lif.Line...)
+	}
+	return append(lines[:start], append(lif.Line, lines[stop+1:]...)...)
 }
 
 func (lif LineInFile) readFile() ([]string, error) {
@@ -50,99 +125,70 @@ func (lif LineInFile) writeFile(lines []string) error {
 	return err
 }
 
-func (lif LineInFile) Remove() (string, error) {
-	lif.File = genesis.ExpandHome(lif.File)
-	err := lif.Store.ApplyPatch(lif.File, lif.Label)
-	if err != nil {
-		return "Could not apply patch.", err
+// findPattern looks for a line that matches the lif.Pattern (or Success) regex.
+// Returns true if it finds it, and the slice index.
+func (lif LineInFile) find(lines []string) (bool, int, int) {
+	var pattern []string
+	if len(lif.Success) == 0 {
+		pattern = lif.Pattern
+	} else {
+		pattern = lif.Success
 	}
-	return "Patch applied", nil
+	return lif.findPattern(lines, pattern)
 }
 
-func (lif LineInFile) Status() (genesis.Status, string, error) {
-
-	lif.File = genesis.ExpandHome(lif.File)
-
-	lines, err := lif.readFile()
-	if err != nil {
-		return genesis.StatusFail, "Could not read file.", err
+func (lif LineInFile) findPattern(lines []string, pattern []string) (bool, int, int) {
+	if len(lines) == 0 || len(pattern) == 0 {
+		return false, -1, -1
 	}
-
-	if lif.Absent {
-		for _, line := range lines {
-			match, _ := regexp.MatchString(lif.Pattern, line)
-			if match {
-				return genesis.StatusFail, "Line is in file.", nil
-			}
-		}
-		return genesis.StatusPass, "Line is absent from file.", nil
-	}
-
-	isAfter := len(lif.After) == 0
-	for _, line := range lines {
-		match := lif.Line == line
-		if len(lif.Success) > 0 {
-			match, _ = regexp.MatchString(lif.Success, line)
-		}
-		if match && isAfter {
-			return genesis.StatusPass, "Line is in file.", nil
-		}
-		match, _ = regexp.MatchString(lif.After, line)
+	idx := 0
+	start := -1
+	for k, line := range lines {
+		match, _ := regexp.MatchString(pattern[idx], line)
 		if match {
-			isAfter = true
-		}
-		if len(lif.Before) > 0 {
-			match, _ = regexp.MatchString(lif.Before, line)
-			if match {
-				break
+			if start < 0 {
+				start = k
+			}
+			idx++
+			if idx >= len(pattern) {
+				return true, start, k
 			}
 		}
 	}
-	return genesis.StatusFail, "Line not in file.", errors.New("Line not in file.")
+	return false, -1, -1
 }
 
-func (lif LineInFile) Install() (string, error) {
+// Grab the lines between start and end (exclusive).
+func (lif LineInFile) split(lines []string, sPtrn, ePtrn []string) (beg, mid, end []string) {
 
-	lif.File = genesis.ExpandHome(lif.File)
+	stop := -1
+	found := false
+	start := 0
 
-	lines, _ := lif.readFile()
-	origLines := strings.Join(lines, "\n")
-
-	done := false
-	isAfter := len(lif.After) == 0
-	for i, line := range lines {
-		match, _ := regexp.MatchString(lif.Pattern, line)
-		if match && lif.Absent {
-			lines = append(lines[:i], lines[i+1:]...)
-		} else if match && isAfter {
-			lines[i] = lif.Line
-			done = true
-			break
-		}
-		match, _ = regexp.MatchString(lif.After, line)
-		if match {
-			isAfter = true
-		}
-		if len(lif.Before) > 0 {
-			match, _ = regexp.MatchString(lif.Before, line)
-			if match {
-				lines = append(lines[:i], append([]string{lif.Line}, lines[i:]...)...)
-				done = true
-				break
-			}
+	// Assign to 'beg' everything up through the start pattern match (inclusive).
+	if len(sPtrn) > 0 {
+		found, _, stop = lif.findPattern(lines, sPtrn)
+		if found {
+			beg = lines[:stop+1]
 		}
 	}
-	if !done && !lif.Absent {
-		lines = append(lines, lif.Line)
+
+	// If there are no lines left, we are done.
+	if stop >= len(lines)-1 {
+		return beg, mid, end
 	}
 
-	err := lif.writeFile(lines)
-	if err != nil {
-		return "Unable to write file.", err
+	// If there is no end pattern, we are done.
+	if len(ePtrn) == 0 {
+		return beg, lines[stop+1:], end
 	}
 
-	lif.Store.SavePatch(lif.File, origLines, strings.Join(lines, "\n"), lif.Label)
-
-	return "Wrote line to file", nil
-
+	// Find the end pattern in the remaining text.
+	mid = lines[stop+1:]
+	found, start, _ = lif.findPattern(mid, ePtrn)
+	if found {
+		end = mid[start:]
+		mid = mid[:start]
+	}
+	return beg, mid, end
 }

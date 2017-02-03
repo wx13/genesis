@@ -68,9 +68,8 @@ type Module interface {
 	Install() (string, error)
 	Remove() (string, error)
 	Status() (Status, string, error)
-	Describe() string
-	ID() string
-	Files() []string
+	ID() string      // Description of module action
+	Files() []string // list of files needed by module
 }
 
 // Doer can do and undo things.

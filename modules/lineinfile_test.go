@@ -1,149 +1,111 @@
-package modules_test
+package modules
 
 import (
-	"io/ioutil"
-	"os"
 	"strings"
 	"testing"
-
-	"github.com/wx13/genesis"
-	"github.com/wx13/genesis/modules"
 )
 
-func TestEmptyFile(t *testing.T) {
+func TestFindPattern(t *testing.T) {
 
-	// Create an empty file.
-	file, _ := ioutil.TempFile("", "genesis")
-	file.Close()
-	defer os.Remove(file.Name())
+	lif := LineInFile{}
+	var found bool
+	var start, end int
 
-	// Put a line in the file.
-	lif := modules.LineInFile{
-		File:    file.Name(),
-		Line:    "This is the line",
-		Pattern: "^This is",
+	// Empty pattern in empty file should return false.
+	found, _, _ = lif.findPattern([]string{}, []string{})
+	if found == true {
+		t.Errorf("Empty pattern should not be found in empty file.")
 	}
 
-	// Check status.
-	status, _, err := lif.Status()
-	if status != genesis.StatusFail {
-		t.Error("Status should be", genesis.StatusFail, "but got", status)
+	// Non-empty pattern in empty file should return false.
+	found, _, _ = lif.findPattern([]string{}, []string{"hello"})
+	if found == true {
+		t.Errorf("Non-empty pattern should not be found in empty file.")
 	}
 
-	// Run install.
-	msg, err := lif.Install()
-	if err != nil {
-		t.Error(err, msg)
+	// Empty pattern in non-empty file should return false.
+	found, _, _ = lif.findPattern([]string{"hello", "bob"}, []string{})
+	if found == true {
+		t.Errorf("Empty pattern should not be found in non-empty file.")
 	}
 
-	// Check that it worked.
-	b, err := ioutil.ReadFile(file.Name())
-	if err != nil {
-		t.Error("Could not read file.")
-	}
-	line := strings.Split(string(b), "\n")[1]
-	if line != "This is the line" {
-		t.Errorf("Line should be:\n%s\nBut is:\n%s\n", "This is the line", line)
+	// Single line file with matching single-line pattern
+	found, start, end = lif.findPattern([]string{"hello"}, []string{"^h"})
+	if found == false || start != 0 || end != 0 {
+		t.Error("Expected false, 0, 0; but got:", found, start, end)
 	}
 
-	// Check status.
-	status, _, err = lif.Status()
-	if err != nil {
-		t.Error("Error getting status:", err)
+	// Multi-line pattern in a multi-line file
+	found, start, end = lif.findPattern([]string{"hello", "bye", "yo", "hey"}, []string{"^h", "^y"})
+	if found == false || start != 0 || end != 2 {
+		t.Error("Expected false, 0, 2; but got:", found, start, end)
 	}
-	if status != genesis.StatusPass {
-		t.Error("Status should be", genesis.StatusPass, "but got", status)
-	}
-
-	// Do it again, and nothing should happen.
-	msg, err = lif.Install()
-	if err != nil {
-		t.Error(err, msg)
-	}
-
-	// Undo. Nothing should happen, because we have no store.
-	msg, err = lif.Remove()
 
 }
 
-func TestInsertLine(t *testing.T) {
+func TestSplit(t *testing.T) {
 
-	// Create an empty file.
-	file, _ := ioutil.TempFile("", "genesis")
-	file.Write([]byte("Line one\nLine two\n"))
-	file.Close()
-	defer os.Remove(file.Name())
+	lif := LineInFile{}
+	var beg, mid, end []string
 
-	// Put a line in the file.
-	lif := modules.LineInFile{
-		File:    file.Name(),
-		Line:    "This is the line",
-		Pattern: "^This is",
-		After:   "Line one",
-		Before:  "Line two",
-	}
-	msg, err := lif.Install()
-	if err != nil {
-		t.Error(err, msg)
+	beg, mid, end = lif.split([]string{}, []string{}, []string{})
+	if len(beg) != 0 || len(mid) != 0 || len(end) != 0 {
+		t.Error("Empty file split with empty patterns -- all fields should be empty.")
 	}
 
-	// Check that it worked.
-	b, err := ioutil.ReadFile(file.Name())
-	if err != nil {
-		t.Error("Could not read file.")
-	}
-	lines := strings.Split(string(b), "\n")
-	if lines[0] != "Line one" || lines[1] != "This is the line" || lines[2] != "Line two" {
-		t.Errorf("file should be:\n%s\nBut is:\n%s\n", "Line one\nThis is the line\nLine two\n", string(b))
+	beg, mid, end = lif.split([]string{"hello", "bye"}, []string{}, []string{})
+	if len(beg) != 0 || len(mid) != 2 || len(end) != 0 {
+		t.Error("Non-empty file split with empty patterns should all be empty except 'mid'.")
 	}
 
-	// Do it again, and nothing should happen.
-	msg, err = lif.Install()
-	if err != nil {
-		t.Error(err, msg)
+	beg, mid, end = lif.split([]string{"hello", "bye"}, []string{"hello"}, []string{"bye"})
+	if len(beg) != 1 || len(mid) != 0 || len(end) != 1 {
+		t.Error("2 lines. start matches first.  end matches second.")
 	}
 
-	// Undo. Nothing should happen, because we have no store.
-	msg, err = lif.Remove()
+	beg, mid, end = lif.split([]string{"hello", "bye"}, []string{"hello"}, []string{"byeeee"})
+	if len(beg) != 1 || len(mid) != 1 || len(end) != 0 {
+		t.Error("2 lines. start matches first.  end matches none.")
+	}
+
+	beg, mid, end = lif.split([]string{"hello", "bye", "yo", "hey", "sup"}, []string{"hello", "^b"}, []string{"hey"})
+	if len(beg) != 2 || len(mid) != 1 || len(end) != 2 {
+		t.Error("Start and end matching, with multi-line start")
+	}
 
 }
 
-func TestModifyLine(t *testing.T) {
+func TestReplace(t *testing.T) {
 
-	// Create an empty file.
-	file, _ := ioutil.TempFile("", "genesis")
-	file.Write([]byte("Foo false\nBar false\nBuz false\n"))
-	file.Close()
-	defer os.Remove(file.Name())
+	lif := LineInFile{}
+	var lines []string
 
-	// Put a line in the file.
-	lif := modules.LineInFile{
-		File:    file.Name(),
-		Line:    "Bar true",
-		Pattern: "^Bar",
-	}
-	msg, err := lif.Install()
-	if err != nil {
-		t.Error(err, msg)
+	// Empty file, empty pattern, empty replace => still empty file.
+	lines = lif.replace([]string{})
+	if len(lines) > 0 {
+		t.Error("Empty file, empty pattern, empty replace ==>", lines)
 	}
 
-	// Check that it worked.
-	b, err := ioutil.ReadFile(file.Name())
-	if err != nil {
-		t.Error("Could not read file.")
-	}
-	lines := strings.Split(string(b), "\n")
-	if lines[0] != "Foo false" || lines[1] != "Bar true" || lines[2] != "Buz false" {
-		t.Errorf("file should be:\n%s\nBut is:\n%s\n", "Line one\nThis is the line\nLine two\n", string(b))
+	// Empty file, empty pattern, non-empty replace.
+	lif.Line = []string{"hello"}
+	lines = lif.replace([]string{})
+	if lines[0] != "hello" {
+		t.Error("Empty file, empty pattern, non-empty replace ==>", lines)
 	}
 
-	// Do it again, and nothing should happen.
-	msg, err = lif.Install()
-	if err != nil {
-		t.Error(err, msg)
+	// Non-empty file, empty pattern, non-empty replace.
+	lif.Line = []string{"hello"}
+	lines = lif.replace([]string{"yo", "hey"})
+	if strings.Join(lines, ":") != "yo:hey:hello" {
+		t.Error("Non-empty file, empty pattern, non-empty replace ==>", lines)
 	}
 
-	// Undo. Nothing should happen, because we have no store.
-	msg, err = lif.Remove()
+	// Non-empty file, non-empty pattern, non-empty replace.
+	lif.Line = []string{"hello"}
+	lif.Pattern = []string{"hey"}
+	lines = lif.replace([]string{"yo", "hey"})
+	if strings.Join(lines, ":") != "yo:hello" {
+		t.Error("Non-empty file, non-empty pattern, non-empty replace ==>", lines)
+	}
 
 }

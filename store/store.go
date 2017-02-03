@@ -29,7 +29,8 @@ func New(dir string) (*Store, error) {
 
 func (store *Store) createPath(filename, label string) string {
 	if len(label) > 0 {
-		label = "." + label
+		label = fmt.Sprintf("%x", md5.Sum([]byte(label)))
+		label = "." + label[:8]
 	}
 	filename = strings.Replace(filename, ":", "", 1)
 	return filepath.Join(store.Dir, filename+label)
