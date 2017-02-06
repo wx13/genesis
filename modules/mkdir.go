@@ -14,12 +14,8 @@ type Mkdir struct {
 	Empty  bool
 }
 
-func (mkdir Mkdir) Describe() string {
-	return fmt.Sprintf("Mkdir: %+v", mkdir)
-}
-
 func (mkdir Mkdir) ID() string {
-	return mkdir.Describe()
+	return fmt.Sprintf("Mkdir: %+v", mkdir)
 }
 
 func (mkdir Mkdir) Files() []string {

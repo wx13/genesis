@@ -18,12 +18,8 @@ type HttpGet struct {
 	Store *store.Store
 }
 
-func (get HttpGet) Describe() string {
-	return fmt.Sprintf("HttpGet: %s => %s", get.Url, get.Dest)
-}
-
 func (get HttpGet) ID() string {
-	return get.Describe()
+	return fmt.Sprintf("HttpGet: %s => %s", get.Url, get.Dest)
 }
 
 func (get HttpGet) Files() []string {

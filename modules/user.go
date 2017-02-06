@@ -12,12 +12,8 @@ type User struct {
 	Name, Passwd string
 }
 
-func (u User) Describe() string {
-	return fmt.Sprintf("User: %s *****", u.Name)
-}
-
 func (u User) ID() string {
-	return "User" + u.Name
+	return fmt.Sprintf("User: %s *****", u.Name)
 }
 
 func (u User) Files() []string {

@@ -19,12 +19,8 @@ type Template struct {
 	Store        *store.Store
 }
 
-func (tmpl Template) Describe() string {
-	return fmt.Sprintf("Template: %s => %s", tmpl.TemplateFile, tmpl.DestFile)
-}
-
 func (tmpl Template) ID() string {
-	return "template" + tmpl.DestFile
+	return fmt.Sprintf("Template: %s => %s", tmpl.TemplateFile, tmpl.DestFile)
 }
 
 func (tmpl Template) Files() []string {

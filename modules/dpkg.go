@@ -15,20 +15,12 @@ type Dpkg struct {
 	Absent bool
 }
 
-func (dpkg Dpkg) Describe() string {
+func (dpkg Dpkg) ID() string {
 	if dpkg.Absent {
 		return "Dpkg remove " + dpkg.Name
 	}
 	name, _ := dpkg.packageName()
 	return "Dpkg install " + name + " from " + dpkg.Path
-}
-
-func (dpkg Dpkg) ID() string {
-	if dpkg.Absent {
-		return dpkg.Describe()
-	}
-	name, _ := dpkg.packageName()
-	return "Dpkg " + name
 }
 
 func (dpkg Dpkg) Files() []string {

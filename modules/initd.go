@@ -13,12 +13,8 @@ type Initd struct {
 	Name string
 }
 
-func (initd Initd) Describe() string {
-	return fmt.Sprintf("Initd: %s", initd.Name)
-}
-
 func (initd Initd) ID() string {
-	return "initd" + initd.Name
+	return fmt.Sprintf("Initd: %s", initd.Name)
 }
 
 func (initd Initd) Files() []string {

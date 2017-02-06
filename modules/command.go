@@ -21,12 +21,8 @@ func MakeCommand(cmd string, opts ...string) Command {
 	return Command{Cmd: cmd, Opts: opts}
 }
 
-func (cmd Command) Describe() string {
-	return fmt.Sprintf("Command: %s %s", cmd.Cmd, strings.Join(cmd.Opts, " "))
-}
-
 func (cmd Command) ID() string {
-	return "command" + cmd.Cmd + strings.Join(cmd.Opts, "")
+	return fmt.Sprintf("Command: %s %s", cmd.Cmd, strings.Join(cmd.Opts, " "))
 }
 
 func (cmd Command) Files() []string {

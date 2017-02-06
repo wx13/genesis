@@ -18,12 +18,8 @@ type File struct {
 	Local  bool // Don't follow links
 }
 
-func (file File) Describe() string {
-	return fmt.Sprintf("File: %+v", file)
-}
-
 func (file File) ID() string {
-	return fmt.Sprintf("file %+v", file)
+	return fmt.Sprintf("File: %+v", file)
 }
 
 func (file File) Files() []string {

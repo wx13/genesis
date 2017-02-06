@@ -15,12 +15,8 @@ type CopyFile struct {
 	Store *store.Store
 }
 
-func (cpf CopyFile) Describe() string {
-	return fmt.Sprintf("CopyFile: %s => %s", cpf.Src, cpf.Dest)
-}
-
 func (cpf CopyFile) ID() string {
-	return "copyFile" + cpf.Dest
+	return fmt.Sprintf("CopyFile: %s => %s", cpf.Src, cpf.Dest)
 }
 
 func (cpf CopyFile) Files() []string {

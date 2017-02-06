@@ -13,15 +13,11 @@ type Apt struct {
 	Absent bool
 }
 
-func (apt Apt) Describe() string {
+func (apt Apt) ID() string {
 	if apt.Absent {
 		return "Apt remove " + apt.Name
 	}
 	return "Apt install " + apt.Name
-}
-
-func (apt Apt) ID() string {
-	return apt.Describe()
 }
 
 func (apt Apt) Files() []string {
