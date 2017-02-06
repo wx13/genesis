@@ -21,10 +21,9 @@ func dotfiles() {
 
 	sect.AddTask(modules.LineInFile{
 		File:    "~/.bashrc",
-		Line:    "source $HOME/.mybashrc",
-		Pattern: "source $HOME/.mybashrc",
+		Line:    []string{"source $HOME/.mybashrc"},
+		Pattern: []string{"source $HOME/.mybashrc"},
 		Store:   inst.Store,
-		Label:   "bashrc",
 	})
 
 	sect.AddTask(modules.CopyFile{
@@ -77,35 +76,33 @@ func sshConfig() {
 	}
 
 	// Enable SSH persistence.
-	sect.AddTask(modules.BlockInFile{
-		File:     "~/.ssh/config",
-		Patterns: []string{`^Host \*`, "^ControlPersist"},
-		Lines: []string{
+	sect.AddTask(modules.LineInFile{
+		File:    "~/.ssh/config",
+		Pattern: []string{`^Host \*`, "^ControlPersist"},
+		Line: []string{
 			"Host *",
 			"ControlMaster auto",
 			"ControlPath ~/.ssh/master-%r@%h:%p",
 			"ControlPersist 30m",
 		},
 		Store: inst.Store,
-		Label: "ssh_persistence",
 	})
 
 	// Disable host key checking on select local networks.
 	ips := []string{"10.0.0.*", "10.0.1.*", "192.168.1.*"}
 	for _, ip := range ips {
-		sect.AddTask(modules.BlockInFile{
+		sect.AddTask(modules.LineInFile{
 			File: "~/.ssh/config",
-			Patterns: []string{
+			Pattern: []string{
 				fmt.Sprintf("^Host %s", ip),
 				"^UserKnownHostsFile",
 			},
-			Lines: []string{
+			Line: []string{
 				fmt.Sprintf("Host %s", ip),
 				"StrictHostKeyChecking no",
 				"UserKnownHostsFile=/dev/null",
 			},
 			Store: inst.Store,
-			Label: "disable_ssh_host_key_checking" + ip,
 		})
 	}
 }
@@ -118,17 +115,15 @@ func raspbianSetup() {
 	// Configure monitor
 	sect.AddTask(modules.LineInFile{
 		File:    "/boot/config.txt",
-		Pattern: "hdmi_group",
-		Line:    "hdmi_group=2",
+		Pattern: []string{"hdmi_group"},
+		Line:    []string{"hdmi_group=2"},
 		Store:   inst.Store,
-		Label:   "hdmi_group",
 	})
 	sect.AddTask(modules.LineInFile{
 		File:    "/boot/config.txt",
-		Pattern: "hdmi_mode",
-		Line:    "hdmi_mode=82",
+		Pattern: []string{"hdmi_mode"},
+		Line:    []string{"hdmi_mode=82"},
 		Store:   inst.Store,
-		Label:   "hdmi_mode",
 	})
 
 }

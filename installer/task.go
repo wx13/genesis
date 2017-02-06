@@ -1,6 +1,8 @@
 package installer
 
 import (
+	"strings"
+
 	"github.com/wx13/genesis"
 )
 
@@ -23,7 +25,7 @@ func (task Task) Status() (genesis.Status, error) {
 	if SkipID(id) != "do" {
 		return genesis.StatusUnknown, nil
 	}
-	desc := task.Describe()
+	desc := strings.Split(id, "\n")[0]
 	PrintHeader(id, desc)
 	status, msg, err := task.Module.Status()
 	if err != nil || status == genesis.StatusFail {
@@ -48,7 +50,7 @@ func (task Task) Do() (bool, error) {
 		return false, nil
 	}
 
-	desc := task.Describe()
+	desc := strings.Split(id, "\n")[0]
 	PrintHeader(id, desc)
 
 	// If status is passing, then we don't have
@@ -81,7 +83,7 @@ func (task Task) Undo() (bool, error) {
 	if SkipID(id) != "do" {
 		return false, nil
 	}
-	desc := task.Describe()
+	desc := strings.Split(id, "\n")[0]
 	PrintHeader(id, desc)
 	status, msg, err := task.Module.Status()
 	if err != nil {
