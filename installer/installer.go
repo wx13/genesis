@@ -31,9 +31,7 @@ type Installer struct {
 	Cmd       string
 	Verbose   bool
 	Facts     genesis.Facts
-	Store     *store.Store
 	Tasks     []genesis.Doer
-	Tmpdir    string
 	Dir       string
 	Gendir    string
 	DoTags    string
@@ -84,7 +82,7 @@ func (inst *Installer) Init() *Installer {
 	}
 
 	var err error
-	inst.Store, err = store.New(inst.Dir)
+	genesis.Store, err = store.New(inst.Dir)
 	if err != nil {
 		fmt.Println("Cannot access store directory.", err)
 		os.Exit(1)
@@ -114,7 +112,7 @@ func (inst *Installer) extractFiles() error {
 		return err
 	}
 	for _, file := range zipRdr.File {
-		dest := filepath.Join(inst.Tmpdir, file.Name)
+		dest := filepath.Join(genesis.Tmpdir, file.Name)
 		if file.FileInfo().IsDir() {
 			os.MkdirAll(dest, file.FileInfo().Mode().Perm())
 			continue
@@ -182,7 +180,7 @@ func (inst *Installer) Done() {
 // CleanUp removes the temporary directory.
 func (inst *Installer) CleanUp() {
 	fmt.Println("")
-	os.RemoveAll(inst.Tmpdir)
+	os.RemoveAll(genesis.Tmpdir)
 }
 
 func SkipID(id string) string {

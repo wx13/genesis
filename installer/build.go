@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/kardianos/osext"
+
+	"github.com/wx13/genesis"
 )
 
 func getFilesToArchive(allFiles []string, tmpdir string) []string {
@@ -37,7 +39,7 @@ func (inst *Installer) Build() {
 	fmt.Println("Building the self-contained executable...")
 
 	dirs := inst.BuildDirs
-	files := getFilesToArchive(inst.Files(), inst.Tmpdir)
+	files := getFilesToArchive(inst.Files(), genesis.Tmpdir)
 
 	execname := inst.ExecName
 	if len(execname) == 0 {

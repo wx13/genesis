@@ -4,15 +4,23 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
+	"regexp"
 
 	"github.com/wx13/genesis"
-	"github.com/wx13/genesis/store"
 )
 
 type CopyFile struct {
-	Dest  string
-	Src   string
-	Store *store.Store
+	Dest string
+	Src  string
+}
+
+func (cpf CopyFile) src() string {
+	match, _ := regexp.MatchString("^[.]?/", cpf.Src)
+	if match {
+		return cpf.Src
+	}
+	return filepath.Join(genesis.Tmpdir, cpf.Src)
 }
 
 func (cpf CopyFile) ID() string {
@@ -20,14 +28,14 @@ func (cpf CopyFile) ID() string {
 }
 
 func (cpf CopyFile) Files() []string {
-	return []string{cpf.Src}
+	return []string{cpf.src()}
 }
 
 func (cpf CopyFile) Remove() (string, error) {
 
 	cpf.Dest = genesis.ExpandHome(cpf.Dest)
 
-	err := cpf.Store.RestoreFile(cpf.Dest, "")
+	err := genesis.Store.RestoreFile(cpf.Dest, "")
 	if err == nil {
 		return "Successfully restored destination file.", nil
 	}
@@ -38,15 +46,12 @@ func (cpf CopyFile) Install() (string, error) {
 
 	cpf.Dest = genesis.ExpandHome(cpf.Dest)
 
-	bytes, err := ioutil.ReadFile(cpf.Src)
+	bytes, err := ioutil.ReadFile(cpf.src())
 	if err != nil {
 		return "Could not read source file.", err
 	}
 
-	err = cpf.Store.SaveFile(cpf.Dest, "")
-	if err != nil {
-		return "Could not save snapshot to file store.", err
-	}
+	err = genesis.Store.SaveFile(cpf.Dest, "")
 
 	err = ioutil.WriteFile(cpf.Dest, bytes, 0644)
 	if err != nil {
@@ -61,7 +66,7 @@ func (cpf CopyFile) Status() (genesis.Status, string, error) {
 
 	cpf.Dest = genesis.ExpandHome(cpf.Dest)
 
-	src, err := ioutil.ReadFile(cpf.Src)
+	src, err := ioutil.ReadFile(cpf.src())
 	if err != nil {
 		return genesis.StatusFail, "Could not read source file.", err
 	}

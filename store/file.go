@@ -1,6 +1,7 @@
 package store
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 func (store *Store) RestoreFile(filename, label string) error {
 
 	if store == nil {
-		return nil
+		return errors.New("no store")
 	}
 
 	src := store.createPath(filename, label)
@@ -37,7 +38,7 @@ func (store *Store) RestoreFile(filename, label string) error {
 func (store *Store) SaveFile(filename, label string) error {
 
 	if store == nil {
-		return nil
+		return errors.New("no store")
 	}
 
 	// If we can't read the source file, then we can't back it up.

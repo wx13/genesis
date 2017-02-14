@@ -6,17 +6,25 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"regexp"
 	"text/template"
 
 	"github.com/wx13/genesis"
-	"github.com/wx13/genesis/store"
 )
 
 type Template struct {
 	DestFile     string
 	TemplateFile string
 	Vars         interface{}
-	Store        *store.Store
+}
+
+func (tmpl Template) src() string {
+	match, _ := regexp.MatchString("^[.]?/", tmpl.TemplateFile)
+	if match {
+		return tmpl.TemplateFile
+	}
+	return filepath.Join(genesis.Tmpdir, tmpl.TemplateFile)
 }
 
 func (tmpl Template) ID() string {
@@ -24,11 +32,11 @@ func (tmpl Template) ID() string {
 }
 
 func (tmpl Template) Files() []string {
-	return []string{tmpl.TemplateFile}
+	return []string{tmpl.src()}
 }
 
 func (tmpl Template) Remove() (string, error) {
-	err := tmpl.Store.RestoreFile(tmpl.DestFile, "")
+	err := genesis.Store.RestoreFile(tmpl.DestFile, "")
 	if err == nil {
 		return "Successfully restored template file.", nil
 	}
@@ -37,11 +45,11 @@ func (tmpl Template) Remove() (string, error) {
 
 func (tmpl Template) Install() (string, error) {
 
-	t, err := template.ParseFiles(tmpl.TemplateFile)
+	t, err := template.ParseFiles(tmpl.src())
 	if err != nil {
 		return "Could not read template file.", err
 	}
-	err = tmpl.Store.SaveFile(tmpl.DestFile, "")
+	err = genesis.Store.SaveFile(tmpl.DestFile, "")
 	if err != nil {
 		return "Could not save snapshot to file store.", err
 	}
@@ -59,7 +67,7 @@ func (tmpl Template) Install() (string, error) {
 
 func (tmpl Template) Status() (genesis.Status, string, error) {
 
-	t, err := template.ParseFiles(tmpl.TemplateFile)
+	t, err := template.ParseFiles(tmpl.src())
 	if err != nil {
 		return genesis.StatusFail, "Could not read template file.", err
 	}

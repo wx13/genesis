@@ -9,13 +9,11 @@ import (
 	"os"
 
 	"github.com/wx13/genesis"
-	"github.com/wx13/genesis/store"
 )
 
 type HttpGet struct {
-	Dest  string
-	Url   string
-	Store *store.Store
+	Dest string
+	Url  string
 }
 
 func (get HttpGet) ID() string {
@@ -30,7 +28,7 @@ func (get HttpGet) Remove() (string, error) {
 
 	get.Dest = genesis.ExpandHome(get.Dest)
 
-	err := get.Store.RestoreFile(get.Dest, "")
+	err := genesis.Store.RestoreFile(get.Dest, "")
 	if err == nil {
 		return "Successfully restored destination file.", nil
 	}
@@ -41,7 +39,7 @@ func (get HttpGet) Install() (string, error) {
 
 	get.Dest = genesis.ExpandHome(get.Dest)
 
-	err := get.Store.SaveFile(get.Dest, "")
+	err := genesis.Store.SaveFile(get.Dest, "")
 	if err != nil {
 		return "Could not save snapshot to file store.", err
 	}

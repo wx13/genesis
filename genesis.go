@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/wx13/genesis/store"
 )
 
 // Facts stores discovered information about the target system.
@@ -53,6 +55,9 @@ func GatherFacts() Facts {
 	return facts
 
 }
+
+var Store *store.Store
+var Tmpdir string
 
 // Status represents a Pass/Fail/Unknown.
 type Status int

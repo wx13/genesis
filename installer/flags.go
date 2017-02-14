@@ -112,7 +112,7 @@ func (inst *Installer) ParseFlags() {
 	inst.SkipTags = *skipTags
 	inst.ExecName = *xName
 
-	inst.Tmpdir, _ = ioutil.TempDir(*tmpdir, "genesis")
+	genesis.Tmpdir, _ = ioutil.TempDir(*tmpdir, "genesis")
 	inst.Dir = genesis.ExpandHome(*dir)
 
 }

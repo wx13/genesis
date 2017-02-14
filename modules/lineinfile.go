@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/wx13/genesis"
-	"github.com/wx13/genesis/store"
 )
 
 // LineInFile lets the user insert lines of text into a file.
@@ -18,12 +17,11 @@ type LineInFile struct {
 	Line []string // line(s) to insert
 
 	// Optional
-	Pattern []string     // line(s) to replace
-	Success []string     // pattern to check for success (defaults to Line)
-	Store   *store.Store // for storing changes
-	Before  []string     // insert line before this pattern
-	After   []string     // insert line after this pattern
-	Absent  bool         // ensure line is absent from file
+	Pattern []string // line(s) to replace
+	Success []string // pattern to check for success (defaults to Line)
+	Before  []string // insert line before this pattern
+	After   []string // insert line after this pattern
+	Absent  bool     // ensure line is absent from file
 
 }
 
@@ -39,7 +37,7 @@ func (lif LineInFile) Files() []string {
 
 func (lif LineInFile) Remove() (string, error) {
 	lif.File = genesis.ExpandHome(lif.File)
-	err := lif.Store.ApplyPatch(lif.File, lif.ID())
+	err := genesis.Store.ApplyPatch(lif.File, lif.ID())
 	if err != nil {
 		return "Could not apply patch.", err
 	}
@@ -91,7 +89,7 @@ func (lif LineInFile) Install() (string, error) {
 		return "Unable to write file.", err
 	}
 
-	lif.Store.SavePatch(lif.File, origLines, strings.Join(lines, "\n"), lif.ID())
+	genesis.Store.SavePatch(lif.File, origLines, strings.Join(lines, "\n"), lif.ID())
 
 	return "Wrote line to file", nil
 

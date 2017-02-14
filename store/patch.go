@@ -1,6 +1,7 @@
 package store
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 func (store *Store) ApplyPatch(filename, label string) error {
 
 	if store == nil {
-		return nil
+		return errors.New("no store")
 	}
 
 	// Read file.
@@ -44,7 +45,7 @@ func (store *Store) ApplyPatch(filename, label string) error {
 func (store *Store) SavePatch(filename, origStr, newStr, label string) error {
 
 	if store == nil {
-		return nil
+		return errors.New("no store")
 	}
 
 	// Create patch
