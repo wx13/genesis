@@ -95,7 +95,7 @@ func (inst *Installer) ParseFlags() {
 	switch cmd {
 	case "install", "remove", "status":
 		runFlag.Parse(os.Args[2:])
-		inst.UserFlags.Parse(os.Args[2:])
+		inst.UserFlags.Parse(runFlag.Args())
 	case "build":
 		buildFlag.Parse(os.Args[2:])
 		inst.BuildDirs = buildFlag.Args()
