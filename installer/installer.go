@@ -234,7 +234,6 @@ func getHistoryFile(dir string) (string, string) {
 		usr, _ := user.Current()
 		dir = usr.HomeDir
 	}
-	dir = filepath.Join(dir, ".genesis")
 	filename := filepath.Join(dir, "history.txt")
 	return dir, filename
 }
