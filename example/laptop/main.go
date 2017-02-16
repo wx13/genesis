@@ -6,7 +6,6 @@ package main
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/wx13/genesis/installer"
 	"github.com/wx13/genesis/modules"
@@ -22,45 +21,38 @@ func dotfiles() {
 	sect.AddTask(modules.LineInFile{
 		File:    "~/.bashrc",
 		Line:    []string{"source $HOME/.mybashrc"},
-		Pattern: []string{"source $HOME/.mybashrc"},
-		Store:   inst.Store,
+		Pattern: []string{`source \$HOME/.mybashrc`},
 	})
 
 	sect.AddTask(modules.CopyFile{
-		Dest:  "~/.mybashrc",
-		Src:   path.Join(inst.Tmpdir, "files/mybashrc"),
-		Store: inst.Store,
+		Dest: "~/.mybashrc",
+		Src:  "files/mybashrc",
 	})
 
 	sect.AddTask(modules.Mkdir{Path: "~/.bash_functions"})
 	sect.AddTask(modules.Mkdir{Path: "~/.bash_scripts"})
 	sect.AddTask(modules.CopyFile{
-		Dest:  "~/.bash_functions/battery.sh",
-		Src:   path.Join(inst.Tmpdir, "files/bash_functions/battery.sh"),
-		Store: inst.Store,
+		Dest: "~/.bash_functions/battery.sh",
+		Src:  "files/bash_functions/battery.sh",
 	})
 	sect.AddTask(modules.CopyFile{
-		Dest:  "~/.bash_scripts/battery.sh",
-		Src:   path.Join(inst.Tmpdir, "files/bash_scripts/battery.sh"),
-		Store: inst.Store,
+		Dest: "~/.bash_scripts/battery.sh",
+		Src:  "files/bash_scripts/battery.sh",
 	})
 
 	sect.AddTask(modules.HttpGet{
-		Url:   "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh",
-		Dest:  "~/.git-prompt.sh",
-		Store: inst.Store,
+		Url:  "https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh",
+		Dest: "~/.git-prompt.sh",
 	})
 
 	sect.AddTask(modules.CopyFile{
-		Dest:  "~/.gitconfig",
-		Src:   path.Join(inst.Tmpdir, "files/gitconfig"),
-		Store: inst.Store,
+		Dest: "~/.gitconfig",
+		Src:  "files/gitconfig",
 	})
 
 	sect.AddTask(modules.CopyFile{
-		Dest:  "~/.screenrc",
-		Src:   path.Join(inst.Tmpdir, "files/screenrc"),
-		Store: inst.Store,
+		Dest: "~/.screenrc",
+		Src:  "files/screenrc",
 	})
 
 }
@@ -85,7 +77,6 @@ func sshConfig() {
 			"ControlPath ~/.ssh/master-%r@%h:%p",
 			"ControlPersist 30m",
 		},
-		Store: inst.Store,
 	})
 
 	// Disable host key checking on select local networks.
@@ -102,7 +93,6 @@ func sshConfig() {
 				"StrictHostKeyChecking no",
 				"UserKnownHostsFile=/dev/null",
 			},
-			Store: inst.Store,
 		})
 	}
 }
@@ -117,13 +107,11 @@ func raspbianSetup() {
 		File:    "/boot/config.txt",
 		Pattern: []string{"hdmi_group"},
 		Line:    []string{"hdmi_group=2"},
-		Store:   inst.Store,
 	})
 	sect.AddTask(modules.LineInFile{
 		File:    "/boot/config.txt",
 		Pattern: []string{"hdmi_mode"},
 		Line:    []string{"hdmi_mode=82"},
-		Store:   inst.Store,
 	})
 
 }
