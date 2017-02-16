@@ -19,4 +19,11 @@ func main() {
 		Dest: "/tmp/genesis_test/file.txt",
 	})
 
+	// Use a template to create a new file.
+	inst.AddTask(modules.Template{
+		Src:  "files/file.txt.tmpl",
+		Dest: "/tmp/genesis_test/file_from_template.txt",
+		Vars: struct{ Name string }{Name: "Bob"},
+	})
+
 }

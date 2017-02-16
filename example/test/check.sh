@@ -39,24 +39,42 @@ cleanup() {
 }
 
 test.install() {
+
 	heading "Run the install on a fresh instance"
 	command ./test.x install
-	heading "Check that installer worked as intended"
+
+	heading "Check that directory was created"
 	if [ ! -d /tmp/genesis_test ]
 	then
 		fail "installer did not create directory"
+	else
+		pass
 	fi
+
+	heading "Check that file was copied"
 	d=$(diff files/file.txt /tmp/genesis_test/file.txt)
 	if [ ! -z "$d" ]
 	then
 		fail "installer did not copy file correctly." $d
+	else
+		pass
 	fi
-	pass
+
+	heading "Check that template was run"
+	if [ -e /tmp/genesis_test/file_from_template.txt ]
+	then
+		pass
+	else
+		fail "Template was not run"
+	fi
+
 }
 
 test.tag_remove() {
+
 	heading "Uninstall only one step"
 	command ./test.x remove -tags d48e1a
+
 	heading "Check that file was removed, but not directory"
 	if [ -e /tmp/genesis_test/file.txt ]
 	then
@@ -67,6 +85,7 @@ test.tag_remove() {
 		fail "directory was removed, but it shouldn't have been"
 	fi
 	pass
+
 }
 
 test.tag_remove_overwrite() {
@@ -93,14 +112,17 @@ test.tag_remove_overwrite() {
 }
 
 test.full_remove() {
-	heading "Uninstall the rest"
+
+	heading "Uninstall all"
 	command ./test.x remove
+
 	heading "Check that removal worked."
 	if [ -d /tmp/genesis_test ]
 	then
 		fail "did not remove directory"
 	fi
 	pass
+
 }
 
 

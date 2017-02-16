@@ -14,21 +14,21 @@ import (
 )
 
 type Template struct {
-	DestFile     string
-	TemplateFile string
-	Vars         interface{}
+	Dest string
+	Src  string
+	Vars interface{}
 }
 
 func (tmpl Template) src() string {
-	match, _ := regexp.MatchString("^[.]?/", tmpl.TemplateFile)
+	match, _ := regexp.MatchString("^[.]?/", tmpl.Src)
 	if match {
-		return tmpl.TemplateFile
+		return tmpl.Src
 	}
-	return filepath.Join(genesis.Tmpdir, tmpl.TemplateFile)
+	return filepath.Join(genesis.Tmpdir, tmpl.Src)
 }
 
 func (tmpl Template) ID() string {
-	return fmt.Sprintf("Template: %s => %s", tmpl.TemplateFile, tmpl.DestFile)
+	return fmt.Sprintf("Template: %s => %s", tmpl.Src, tmpl.Dest)
 }
 
 func (tmpl Template) Files() []string {
@@ -36,7 +36,7 @@ func (tmpl Template) Files() []string {
 }
 
 func (tmpl Template) Remove() (string, error) {
-	err := genesis.Store.RestoreFile(tmpl.DestFile, "")
+	err := genesis.Store.RestoreFile(tmpl.Dest, "")
 	if err == nil {
 		return "Successfully restored template file.", nil
 	}
@@ -49,11 +49,11 @@ func (tmpl Template) Install() (string, error) {
 	if err != nil {
 		return "Could not read template file.", err
 	}
-	err = genesis.Store.SaveFile(tmpl.DestFile, "")
+	err = genesis.Store.SaveFile(tmpl.Dest, "")
 	if err != nil {
 		return "Could not save snapshot to file store.", err
 	}
-	file, err := os.Create(tmpl.DestFile)
+	file, err := os.Create(tmpl.Dest)
 	if err != nil {
 		return "Could not create destination file.", err
 	}
@@ -76,7 +76,7 @@ func (tmpl Template) Status() (genesis.Status, string, error) {
 	t.Execute(buf, tmpl.Vars)
 	tmplStr := buf.String()
 
-	b, _ := ioutil.ReadFile(tmpl.DestFile)
+	b, _ := ioutil.ReadFile(tmpl.Dest)
 	fStr := string(b)
 	if fStr != tmplStr {
 		return genesis.StatusFail, "Template and destination differ", errors.New("Template and destination differ.")
