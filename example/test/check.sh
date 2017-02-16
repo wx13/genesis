@@ -68,6 +68,15 @@ test.install() {
 		fail "Template was not run"
 	fi
 
+	heading "Check that the README file was retrieved"
+	title=$(head -1 /tmp/genesis_test/README.md)
+	if [ "$title" == "Genesis" ]
+	then
+		pass
+	else
+		fail "Failed to get file from internet"
+	fi
+
 }
 
 test.tag_remove() {

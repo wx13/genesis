@@ -26,4 +26,10 @@ func main() {
 		Vars: struct{ Name string }{Name: "Bob"},
 	})
 
+	// Get a file from the internet.
+	inst.AddTask(modules.HttpGet{
+		Url:  "https://raw.githubusercontent.com/wx13/genesis/master/README.md",
+		Dest: "/tmp/genesis_test/README.md",
+	})
+
 }
