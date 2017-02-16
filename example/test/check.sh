@@ -34,6 +34,8 @@ test.build() {
 cleanup() {
 	heading "Remove the target directory"
 	command rm -rf /tmp/genesis_test
+	heading "Remove store"
+	command rm -rf ~/.genesis/store
 }
 
 test.install() {
@@ -67,6 +69,29 @@ test.tag_remove() {
 	pass
 }
 
+test.tag_remove_overwrite() {
+
+	mkdir /tmp/genesis_test
+	echo "foo" > /tmp/genesis_test/file.txt
+	test.install
+
+	heading "Uninstall text file which had overwritten a file"
+
+	command ./test.x remove -tags d48e1a
+	heading "Check that the old file was restored"
+	if [ ! -e /tmp/genesis_test/file.txt ]
+	then
+		fail "Old file was not restored"
+	fi
+	content=$(cat /tmp/genesis_test/file.txt)
+	if [ ! "$content" == "foo" ]
+	then
+		fail "Old file was restored with wrong content"
+	fi
+
+	pass
+}
+
 test.full_remove() {
 	heading "Uninstall the rest"
 	command ./test.x remove
@@ -80,11 +105,14 @@ test.full_remove() {
 
 
 
+cleanup
 test.build
 test.install
 test.tag_remove
 test.full_remove
 
+cleanup
+test.tag_remove_overwrite
 
 
 

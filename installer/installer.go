@@ -82,7 +82,8 @@ func (inst *Installer) Init() *Installer {
 	}
 
 	var err error
-	genesis.Store, err = store.New(inst.Dir)
+	storedir := filepath.Join(inst.Dir, "store")
+	genesis.Store, err = store.New(storedir)
 	if err != nil {
 		fmt.Println("Cannot access store directory.", err)
 		os.Exit(1)
