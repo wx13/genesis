@@ -80,7 +80,22 @@ func (inst *Installer) ParseFlags() {
 		fmt.Printf("  %s build [-x file] [list of directories]\n", execName)
 		fmt.Println("")
 	}
+
 	rerunFlag := flag.NewFlagSet("rerun", flag.ExitOnError)
+	rerunFlag.Usage = func() {
+		fmt.Println("")
+		fmt.Println("Access command history.")
+		fmt.Println("")
+		fmt.Println("Because shell history is unreliable, genesis stores its own")
+		fmt.Println("command history.  Running with the 'rerun' command will greet")
+		fmt.Println("you with a command prompt.  This prompt behaves a like a normal")
+		fmt.Println("readline prompt. Use arrows, ctrl-r, etc. to navigate and edit.")
+		fmt.Println("")
+		fmt.Println("Usage:")
+		fmt.Println("")
+		fmt.Printf("  %s rerun\n", execName)
+		fmt.Println("")
+	}
 
 	// Print help screen if no arguments are given.
 	if len(os.Args) <= 1 {
