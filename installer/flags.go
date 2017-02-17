@@ -43,7 +43,7 @@ func (inst *Installer) ParseFlags() {
 	}
 
 	// Options for the "run" commands: install, remove, status.
-	runFlag := flag.NewFlagSet("run", flag.ContinueOnError)
+	runFlag := flag.NewFlagSet("run", flag.ExitOnError)
 	verbose := runFlag.Bool("verbose", false, "Verbose")
 	tmpdir := runFlag.String("tmpdir", "", "Temp directory for unpacked files; empty string == default location")
 	dir := runFlag.String("dir", "~/.genesis", "Storage directory for data. Defaults to ~/.genesis")
