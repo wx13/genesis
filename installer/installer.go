@@ -36,18 +36,18 @@ type Installer struct {
 	Gendir    string
 	DoTags    string
 	SkipTags  string
-	UserFlags *flag.FlagSet
+	UserFlags []*flag.FlagSet
 	ExecName  string
 	BuildDirs []string
 }
 
 // New creates a new installer object.
-func New() *Installer {
+func New(userFlags ...*flag.FlagSet) *Installer {
 
 	inst := Installer{}
 	inst.Tasks = []genesis.Doer{}
-	inst.UserFlags = flag.NewFlagSet("user", flag.ExitOnError)
-	inst.UserFlags.Usage = func() {}
+	inst.UserFlags = userFlags
+	inst.Init()
 	return &inst
 
 }

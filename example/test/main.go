@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	inst := installer.New().Init()
+	inst := installer.New()
 	defer inst.Done()
 
 	// Ensure a directory exists.
