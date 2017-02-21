@@ -1,6 +1,28 @@
 Change Log
 ==========
 
+## [0.3.0] 2017-02-23
+
+This release involves many big changes, some which break backwards
+compatibility.  Upgrading to this version will require rewriting
+your code.
+
+changes:
+- Compiled executable can now build its own archive
+  + The executable knows which files it needs, so this makes build
+    scripts less needed.
+- New command-line options and help screen
+  + Actions such as 'install', 'remove', etc are now subcommands instead of
+    flags.
+  + Replace './installer -tags 89a12f -install' with './installer install -tags 89a12f'
+  + History lines (rerun) are automatically updated.
+- New way to specify 'user' flags to genesis installer.
+- LineInFile and BlockInFile have been merged.
+- Fixed some bugs related to history file and store directory paths
+- New Switch-Case Doer: conditional execution over a set of doers
+
+<hr>
+
 ## [0.2.0] 2016-10-20
 
 bugfixes:

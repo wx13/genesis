@@ -61,13 +61,14 @@ add the module instance directly to the installer.  By using the
 instance.  A Task is just a thin wrapper around a module instance.
 We do this because a Task is a type of `Doer` (whereas a module is not).
 
-Other types of Doers include Sections, Groups, Customs, and IfThens.
-A Group is a list of Doers, and a Section is a list of Doers with a title.
-An IfThen is a pair of Doers, where the second Doer only is run if the
-first Doer changes state.  Finally, a Custom is a Doer with mutable
-methods. Customs are very useful for specifying a custom Status method.
+Other types of Doers include Sections, Groups, Customs, Switchs, and
+IfThens. A Group is a list of Doers, and a Section is a list of Doers
+with a title. An IfThen is a pair of Doers, where the second Doer only is
+run if the first Doer changes state. A Switch is a set of Doers with
+assigned conditions. Finally, a Custom is a Doer with mutable methods.
+Customs are very useful for specifying a custom Status method.
 
-Notices that all of the Doers (except Tasks) are collections of Doers.
+Notice that all of the Doers (except Tasks) are collections of Doers.
 So hierarchies of Doers can be created.  In this way, you can add
 IfThens to Sections, and then have Sections coupled with IfThens!
 Here is an example of such wonderful craziness:
@@ -79,10 +80,9 @@ Here is an example of such wonderful craziness:
 	netSect := inst.NewSection("Configure the network")
 	ip := inst.Task{modules.LineInFile{
 		File:    "/etc/network/interfaces",
-		Line:    "    address 10.0.0.4",
-		Pattern: "^    address",
-		Store:   inst.Store,
-		After:   "^iface eth0",
+		Line:    []string{"    address 10.0.0.4"},
+		Pattern: []string{"^    address"},
+		After:   []string{"^iface eth0"},
 	}}
 	restart := inst.Task{modules.Command{
 		Cmd: "/etc/init.d/networking",
