@@ -253,6 +253,31 @@ func GetHistory(dir string) []string {
 	if len(lines) > 1000 {
 		lines = lines[:1000]
 	}
+	lines = sanHist(lines)
+	return lines
+}
+
+// sanHist "sanitizes" the command history. In particular,
+// it updates old lines to meet the current API.
+func sanHist(lines []string) []string {
+	for k, line := range lines {
+		words := strings.Fields(line)
+		for j, word := range words {
+			if word == "-install" || word == "-remove" {
+				cmd := word[1:]
+				ex := words[0]
+				if j >= len(words) {
+					words = words[1:j]
+				} else {
+					words = append(words[1:j], words[j+1:]...)
+				}
+				words = append([]string{cmd}, words...)
+				words = append([]string{ex}, words...)
+				lines[k] = strings.Join(words, " ")
+				break
+			}
+		}
+	}
 	return lines
 }
 
