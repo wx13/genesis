@@ -3,6 +3,8 @@ package modules
 import (
 	"errors"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/wx13/genesis"
@@ -15,6 +17,17 @@ type Dpkg struct {
 	Absent bool
 }
 
+func (dpkg Dpkg) path() string {
+	if dpkg.Path == "" {
+		return ""
+	}
+	match, _ := regexp.MatchString("^[.]?/", dpkg.Path)
+	if match {
+		return dpkg.Path
+	}
+	return filepath.Join(genesis.Tmpdir, dpkg.Path)
+}
+
 func (dpkg Dpkg) ID() string {
 	if dpkg.Absent {
 		return "Dpkg remove " + dpkg.Name
@@ -24,11 +37,14 @@ func (dpkg Dpkg) ID() string {
 }
 
 func (dpkg Dpkg) Files() []string {
-	return []string{dpkg.Path}
+	if dpkg.Path == "" {
+		return []string{}
+	}
+	return []string{dpkg.path()}
 }
 
 func (dpkg *Dpkg) packageName() (string, error) {
-	cmd := exec.Command("dpkg-deb", "-W", "--showformat", "${Package}", dpkg.Path)
+	cmd := exec.Command("dpkg-deb", "-W", "--showformat", "${Package}", dpkg.path())
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
@@ -43,9 +59,9 @@ func (dpkg Dpkg) Install() (string, error) {
 		cmd = exec.Command("dpkg", "-r", dpkg.Name)
 	} else {
 		if dpkg.Force {
-			cmd = exec.Command("dpkg", "--force-depends", "-i", dpkg.Path)
+			cmd = exec.Command("dpkg", "--force-depends", "-i", dpkg.path())
 		} else {
-			cmd = exec.Command("dpkg", "-i", dpkg.Path)
+			cmd = exec.Command("dpkg", "-i", dpkg.path())
 		}
 	}
 	output, err := cmd.CombinedOutput()
