@@ -37,7 +37,7 @@ func (sw Switch) ID() string {
 	return id
 }
 
-func (sw *Switch) Case(doer genesis.Doer, condition bool) {
+func (sw *Switch) Case(condition bool, doer genesis.Doer) {
 	sw.Tasks[doer] = condition
 }
 
