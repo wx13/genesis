@@ -41,6 +41,18 @@ func (sw *Switch) Case(condition bool, doer genesis.Doer) {
 	sw.Tasks[doer] = condition
 }
 
+// Else -- if all existing tasks are false, then this is true.
+// If any existing task is true, this is false.
+func (sw *Switch) Else(doer genesis.Doer) {
+	for _, cond := range sw.Tasks {
+		if cond {
+			sw.Tasks[doer] = false
+			return
+		}
+	}
+	sw.Tasks[doer] = true
+}
+
 func (sw Switch) Status() (genesis.Status, error) {
 	status := genesis.StatusPass
 	for task, condition := range sw.Tasks {
