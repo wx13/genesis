@@ -6,20 +6,20 @@ import (
 
 // Switch runs a Doer depending on a value.
 type Switch struct {
-	Tasks map[genesis.Doer]bool
+	Dos   []genesis.Doer
+	Donts []genesis.Doer
 	Name  string
 }
 
 func NewSwitch(name string) *Switch {
 	return &Switch{
-		Tasks: map[genesis.Doer]bool{},
-		Name:  name,
+		Name: name,
 	}
 }
 
 func (sw Switch) Files() []string {
 	files := []string{}
-	for task, _ := range sw.Tasks {
+	for _, task := range append(sw.Dos, sw.Donts...) {
 		files = append(files, task.Files()...)
 	}
 	return files
@@ -28,7 +28,7 @@ func (sw Switch) Files() []string {
 func (sw Switch) ID() string {
 	id := ""
 	if sw.Name == "" {
-		for task, _ := range sw.Tasks {
+		for _, task := range append(sw.Dos, sw.Donts...) {
 			id += task.ID()
 		}
 	} else {
@@ -38,27 +38,26 @@ func (sw Switch) ID() string {
 }
 
 func (sw *Switch) Case(condition bool, doer genesis.Doer) {
-	sw.Tasks[doer] = condition
+	if condition {
+		sw.Dos = append(sw.Dos, doer)
+	} else {
+		sw.Donts = append(sw.Donts, doer)
+	}
 }
 
 // Else -- if all existing tasks are false, then this is true.
 // If any existing task is true, this is false.
 func (sw *Switch) Else(doer genesis.Doer) {
-	for _, cond := range sw.Tasks {
-		if cond {
-			sw.Tasks[doer] = false
-			return
-		}
+	if len(sw.Dos) == 0 {
+		sw.Dos = append(sw.Dos, doer)
+	} else {
+		sw.Donts = append(sw.Donts, doer)
 	}
-	sw.Tasks[doer] = true
 }
 
 func (sw Switch) Status() (genesis.Status, error) {
 	status := genesis.StatusPass
-	for task, condition := range sw.Tasks {
-		if !condition {
-			continue
-		}
+	for _, task := range sw.Dos {
 		s, _ := task.Status()
 		if s == genesis.StatusFail {
 			status = s
@@ -71,10 +70,7 @@ func (sw Switch) Status() (genesis.Status, error) {
 }
 
 func (sw Switch) Do() (bool, error) {
-	for task, condition := range sw.Tasks {
-		if !condition {
-			continue
-		}
+	for _, task := range sw.Dos {
 		changed, err := task.Do()
 		if err != nil {
 			return changed, err
@@ -84,10 +80,7 @@ func (sw Switch) Do() (bool, error) {
 }
 
 func (sw Switch) Undo() (bool, error) {
-	for task, condition := range sw.Tasks {
-		if !condition {
-			continue
-		}
+	for _, task := range sw.Dos {
 		changed, err := task.Undo()
 		if err != nil {
 			return changed, err
