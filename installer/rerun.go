@@ -1,6 +1,8 @@
 package installer
 
 import (
+	"strings"
+
 	"github.com/peterh/liner"
 )
 
@@ -10,9 +12,13 @@ func Rerun(dir string) (string, error) {
 	defer lnr.Close()
 	lnr.SetCtrlCAborts(true)
 
-	cmds := GetHistory(dir)
-	for i := len(cmds) - 1; i >= 0; i-- {
-		lnr.AppendHistory(cmds[i])
+	hist := GetHistory(dir)
+	for i := len(hist) - 1; i >= 0; i-- {
+		words := strings.Fields(hist[i])
+		if len(words) <= 1 {
+			continue
+		}
+		lnr.AppendHistory(strings.Join(words[1:], " "))
 	}
 
 	return lnr.Prompt(">>> ")

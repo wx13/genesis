@@ -61,7 +61,7 @@ func (inst *Installer) Init() *Installer {
 	if inst.Cmd == "rerun" {
 		line, err := Rerun(inst.Dir)
 		if err == nil {
-			os.Args = strings.Fields(line)
+			os.Args = strings.Fields("main " + line)
 			inst.ParseFlags()
 		}
 	}
