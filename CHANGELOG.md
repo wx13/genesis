@@ -1,6 +1,16 @@
 Change Log
 ==========
 
+## [0.3.1] 2017-03-09
+
+- switch argument order in switch/case: now condition comes first
+- add "else" to switch/case.  "else" gets run if all other conditions
+  are false.
+- bugfix: rework internal switch/case storage
+- don't show executable name in rerun history -- just show arguments
+
+<hr>
+
 ## [0.3.0] 2017-02-23
 
 This release involves many big changes, some which break backwards
